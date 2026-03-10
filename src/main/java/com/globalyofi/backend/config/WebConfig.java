@@ -1,3 +1,7 @@
+/**
+ * This class defines the static route for images
+ */
+
 package com.globalyofi.backend.config;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -11,17 +15,20 @@ import java.nio.file.Paths;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+    // Upload directory path (stems from application.properties)
     @Value("${app.upload.dir}")
     private String uploadDir;
 
-    //Hace que las imagenes de /uploads pueda ser accedidas desde un http
+    // Makes the images from /uploads accessible from an http request
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // Normalize the upload directory path
         Path path = Paths.get(uploadDir).toAbsolutePath().normalize();
         String filePath = path.toUri().toString();
 
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations(filePath);
+        // A request to http://localhost:8080/uploads/image1.png will serve the file
+        // C:/myapp/uploads/image1.png
     }
 }
-

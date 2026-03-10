@@ -1,3 +1,15 @@
+/**
+ * Security configuration for the application
+ * 
+ * How it works:
+ * - Spring Security intercepts the incoming request
+ * - Firstly it checks CORS configuration to allow or deny the request.
+ * - Security context is populated with the JwtAuthFilter
+ * - Authorization rules decide whether the requests can be processed or needs to be authenticated
+ *  - If authentication is required, the AuthenticationManager verifies the token
+ * - Password encoder is used to hash and verify passwords, before saving them.
+ */
+
 package com.globalyofi.backend.config;
 
 import com.globalyofi.backend.security.JwtAuthFilter;
@@ -31,71 +43,70 @@ public class SecurityConfig {
     }
 
     /**
-     * 🧩 Configuración principal de seguridad
+     * Main security configuration
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // ✅ Habilitamos CORS con el bean configurado más abajo
+                // Enable CORS with the following configuration
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-                // 🚫 Deshabilitamos CSRF (porque usamos JWT)
+                // CSRF disabled (Will be replaced by JWT)
                 .csrf(csrf -> csrf.disable())
 
-                // 🧠 Política de sesiones sin estado (JWT)
+                // Session management disabled (Will be replaced by JWT)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // 🔐 Reglas de autorización
+                // Authorization rules
                 .authorizeHttpRequests(auth -> auth
-                        // Rutas públicas (no requieren token)
+                        // Public routes (no token required)
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(
                                 "/api/productos/**",
                                 "/api/categorias/**",
                                 "/api/proveedores/**",
-                                "/uploads/**"
-                        ).permitAll()
+                                "/uploads/**")
+                        .permitAll()
 
-                        // Todo lo demás requiere autenticación
-                        .anyRequest().authenticated()
-                )
+                        // All other routes will require authentication
+                        .anyRequest().authenticated())
 
-                // 🧱 Agregamos nuestro filtro JWT antes del filtro estándar
+                // Add our JWT filter before the standard filter
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
     /**
-     * 🔑 Bean para manejar el CORS (Angular <-> Spring Boot)
+     * CORS Administration
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // 🌐 Dominio del frontend
+        // Frontend allowed URL (Angular)
         config.setAllowedOrigins(List.of("http://localhost:4200"));
 
-        // ✅ Métodos permitidos
+        // Allowed methods
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 
-        // ✅ Headers permitidos
+        // Allowed headers
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
 
-        // ✅ Headers expuestos (para leer el token si se enviara por header)
+        // Exposed headers (to read the token if it were sent by header)
         config.setExposedHeaders(List.of("Authorization"));
 
-        // ⚙️ Permitir cookies si lo necesitaras (por ahora no)
+        // Allow cookies if needed (not for now)
         config.setAllowCredentials(true);
 
-        // Registrar configuración para todas las rutas
+        // Apply configuration for all routes
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
     }
 
     /**
-     * 🔐 Codificador de contraseñas (BCrypt)
+     * Standard password encoder (BCrypt)
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -103,7 +114,7 @@ public class SecurityConfig {
     }
 
     /**
-     * ⚙️ AuthenticationManager para login
+     * AuthenticationManager for login
      */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
