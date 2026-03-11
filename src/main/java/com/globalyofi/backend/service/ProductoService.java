@@ -21,184 +21,189 @@ import java.util.stream.Collectors;
 @Service
 public class ProductoService {
 
-    @Autowired
-    private ProductoRepository productoRepository;
+        @Autowired
+        private ProductoRepository productoRepository;
 
-    @Autowired
-    private CategoriaRepository categoriaRepository;
+        @Autowired
+        private CategoriaRepository categoriaRepository;
 
-    @Autowired
-    private ProveedorRepository proveedorRepository;
+        @Autowired
+        private ProveedorRepository proveedorRepository;
 
-    @Autowired
-    private FileStorageService fileStorageService;
+        @Autowired
+        private FileStorageService fileStorageService;
 
-
-    public List<ProductoResponseDTO> obtenerTodos() {
-        return productoRepository.findAll()
-                .stream()
-                .map(this::convertirAResponseDTO)
-                .collect(Collectors.toList());
-    }
-
-    //Filtro general
-    public List<ProductoResponseDTO> filtrar(Integer categoriaId, BigDecimal minPrecio, BigDecimal maxPrecio) {
-        return productoRepository.buscarPorFiltros(categoriaId, minPrecio, maxPrecio)
-                .stream()
-                .map(this::convertirAResponseDTO)
-                .collect(Collectors.toList());
-    }
-
-    //Filtro por categoría
-    public List<ProductoResponseDTO> obtenerPorCategoria(Integer categoriaId) {
-        return productoRepository.findByCategoriaIdCategoria(categoriaId)
-                .stream()
-                .map(this::convertirAResponseDTO)
-                .collect(Collectors.toList());
-    }
-
-    //Filtro por rango de precios
-    public List<ProductoResponseDTO> obtenerPorRango(BigDecimal min, BigDecimal max) {
-        return productoRepository.findByPrecioBetween(min, max)
-                .stream()
-                .map(this::convertirAResponseDTO)
-                .collect(Collectors.toList());
-    }
-
-    //Crear producto
-    //*public ProductoResponseDTO guardar(ProductoRequestDTO dto) {
-    //    Categoria categoria = categoriaRepository.findById(dto.getCategoriaId())
-    //            .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada"));
-    //
-    //    Proveedor proveedor = proveedorRepository.findById(dto.getProveedorId())
-    //            .orElseThrow(() -> new EntityNotFoundException("Proveedor no encontrado"));
-    //
-    //    Producto producto = Producto.builder()
-    //            .nombre(dto.getNombre())
-    //            .descripcion(dto.getDescripcion())
-    //            .precio(dto.getPrecio())
-    //            .marca(dto.getMarca())
-    //            .stockActual(dto.getStockActual())
-    //            .stockMinimo(dto.getStockMinimo())
-    //            .fechaIngreso(LocalDateTime.now())
-    //            .estado("ACTIVO")
-    //            .imagenUrl(dto.getImagenUrl())
-    //            .categoria(categoria)
-    //            .proveedor(proveedor)
-    //            .build();
-    //
-    //    productoRepository.save(producto);
-    //    return convertirAResponseDTO(producto);
-    //}
-
-    //Metodo para guardar imagen en el backend
-    public ProductoResponseDTO guardarConImagen(ProductoRequestDTO dto, MultipartFile imagen) {
-        Categoria categoria = categoriaRepository.findById(dto.getCategoriaId())
-                .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada"));
-
-        Proveedor proveedor = proveedorRepository.findById(dto.getProveedorId())
-                .orElseThrow(() -> new EntityNotFoundException("Proveedor no encontrado"));
-
-        // Guardar imagen si viene en la petición
-        String imagenUrl = null;
-        if (imagen != null && !imagen.isEmpty()) {
-            imagenUrl = fileStorageService.guardarArchivo(imagen);
+        public List<ProductoResponseDTO> obtenerTodos() {
+                return productoRepository.findAll()
+                                .stream()
+                                .map(this::convertirAResponseDTO)
+                                .collect(Collectors.toList());
         }
 
-        Producto producto = Producto.builder()
-                .nombre(dto.getNombre())
-                .descripcion(dto.getDescripcion())
-                .precio(dto.getPrecio())
-                .marca(dto.getMarca())
-                .stockActual(dto.getStockActual())
-                .stockMinimo(dto.getStockMinimo())
-                .fechaIngreso(LocalDateTime.now())
-                .estado("ACTIVO")
-                .imagenUrl(imagenUrl)
-                .categoria(categoria)
-                .proveedor(proveedor)
-                .build();
-
-        productoRepository.save(producto);
-        return convertirAResponseDTO(producto);
-    }
-
-
-    //Actualizar producto
-    //public ProductoResponseDTO actualizar(Integer id, ProductoRequestDTO dto) {
-    //    Producto producto = productoRepository.findById(id)
-    //            .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado"));
-    //
-    //    Categoria categoria = categoriaRepository.findById(dto.getCategoriaId())
-    //            .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada"));
-    //    Proveedor proveedor = proveedorRepository.findById(dto.getProveedorId())
-    //            .orElseThrow(() -> new EntityNotFoundException("Proveedor no encontrado"));
-    //
-    //    producto.setNombre(dto.getNombre());
-    //    producto.setDescripcion(dto.getDescripcion());
-    //    producto.setPrecio(dto.getPrecio());
-    //    producto.setMarca(dto.getMarca());
-    //    producto.setStockActual(dto.getStockActual());
-    //    producto.setStockMinimo(dto.getStockMinimo());
-    //    producto.setEstado(dto.getEstado());
-    //    producto.setImagenUrl(dto.getImagenUrl());
-    //    producto.setCategoria(categoria);
-    //    producto.setProveedor(proveedor);
-    //
-    //    productoRepository.save(producto);
-    //    return convertirAResponseDTO(producto);
-    //}
-
-    public ProductoResponseDTO actualizarConImagen(Integer id, ProductoRequestDTO dto, MultipartFile nuevaImagen) {
-        Producto producto = productoRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado"));
-
-        Categoria categoria = categoriaRepository.findById(dto.getCategoriaId())
-                .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada"));
-
-        Proveedor proveedor = proveedorRepository.findById(dto.getProveedorId())
-                .orElseThrow(() -> new EntityNotFoundException("Proveedor no encontrado"));
-
-        // Si se envía una nueva imagen, la guardamos y reemplazamos la anterior
-        if (nuevaImagen != null && !nuevaImagen.isEmpty()) {
-            String nuevaUrl = fileStorageService.guardarArchivo(nuevaImagen);
-            producto.setImagenUrl(nuevaUrl);
+        public ProductoResponseDTO obtenerPorId(Integer id) {
+                Producto producto = productoRepository.findById(id)
+                                .orElseThrow(() -> new EntityNotFoundException(
+                                                "Producto no encontrado con el id: " + id));
+                return convertirAResponseDTO(producto);
         }
 
-        // Actualizamos el resto de los campos
-        producto.setNombre(dto.getNombre());
-        producto.setDescripcion(dto.getDescripcion());
-        producto.setPrecio(dto.getPrecio());
-        producto.setMarca(dto.getMarca());
-        producto.setStockActual(dto.getStockActual());
-        producto.setStockMinimo(dto.getStockMinimo());
-        producto.setEstado(dto.getEstado() != null ? dto.getEstado() : producto.getEstado());
-        producto.setCategoria(categoria);
-        producto.setProveedor(proveedor);
+        // Filtro general
+        public List<ProductoResponseDTO> filtrar(Integer categoriaId, BigDecimal minPrecio, BigDecimal maxPrecio) {
+                return productoRepository.buscarPorFiltros(categoriaId, minPrecio, maxPrecio)
+                                .stream()
+                                .map(this::convertirAResponseDTO)
+                                .collect(Collectors.toList());
+        }
 
-        productoRepository.save(producto);
-        return convertirAResponseDTO(producto);
-    }
+        // Filtro por categoría
+        public List<ProductoResponseDTO> obtenerPorCategoria(Integer categoriaId) {
+                return productoRepository.findByCategoriaIdCategoria(categoriaId)
+                                .stream()
+                                .map(this::convertirAResponseDTO)
+                                .collect(Collectors.toList());
+        }
 
-    //Eliminar producto
-    public void eliminar(Integer id) {
-        Producto producto = productoRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado"));
+        // Filtro por rango de precios
+        public List<ProductoResponseDTO> obtenerPorRango(BigDecimal min, BigDecimal max) {
+                return productoRepository.findByPrecioBetween(min, max)
+                                .stream()
+                                .map(this::convertirAResponseDTO)
+                                .collect(Collectors.toList());
+        }
 
-        producto.setEstado("INACTIVO");
-        productoRepository.save(producto);
-    }
+        // Crear producto
+        // *public ProductoResponseDTO guardar(ProductoRequestDTO dto) {
+        // Categoria categoria = categoriaRepository.findById(dto.getCategoriaId())
+        // .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada"));
+        //
+        // Proveedor proveedor = proveedorRepository.findById(dto.getProveedorId())
+        // .orElseThrow(() -> new EntityNotFoundException("Proveedor no encontrado"));
+        //
+        // Producto producto = Producto.builder()
+        // .nombre(dto.getNombre())
+        // .descripcion(dto.getDescripcion())
+        // .precio(dto.getPrecio())
+        // .marca(dto.getMarca())
+        // .stockActual(dto.getStockActual())
+        // .stockMinimo(dto.getStockMinimo())
+        // .fechaIngreso(LocalDateTime.now())
+        // .estado("ACTIVO")
+        // .imagenUrl(dto.getImagenUrl())
+        // .categoria(categoria)
+        // .proveedor(proveedor)
+        // .build();
+        //
+        // productoRepository.save(producto);
+        // return convertirAResponseDTO(producto);
+        // }
 
-    private ProductoResponseDTO convertirAResponseDTO(Producto producto) {
-        return ProductoResponseDTO.builder()
-                .id(producto.getIdProducto())
-                .nombre(producto.getNombre())
-                .descripcion(producto.getDescripcion())
-                .precio(producto.getPrecio())
-                .marca(producto.getMarca())
-                .imagenUrl(producto.getImagenUrl())
-                .categoria(producto.getCategoria() != null ? producto.getCategoria().getNombre() : null)
-                .proveedor(producto.getProveedor() != null ? producto.getProveedor().getNombre() : null)
-                .build();
-    }
+        // Metodo para guardar imagen en el backend
+        public ProductoResponseDTO guardarConImagen(ProductoRequestDTO dto, MultipartFile imagen) {
+                Categoria categoria = categoriaRepository.findById(dto.getCategoriaId())
+                                .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada"));
+
+                Proveedor proveedor = proveedorRepository.findById(dto.getProveedorId())
+                                .orElseThrow(() -> new EntityNotFoundException("Proveedor no encontrado"));
+
+                // Guardar imagen si viene en la petición
+                String imagenUrl = null;
+                if (imagen != null && !imagen.isEmpty()) {
+                        imagenUrl = fileStorageService.guardarArchivo(imagen);
+                }
+
+                Producto producto = Producto.builder()
+                                .nombre(dto.getNombre())
+                                .descripcion(dto.getDescripcion())
+                                .precio(dto.getPrecio())
+                                .marca(dto.getMarca())
+                                .stockActual(dto.getStockActual())
+                                .stockMinimo(dto.getStockMinimo())
+                                .fechaIngreso(LocalDateTime.now())
+                                .estado("ACTIVO")
+                                .imagenUrl(imagenUrl)
+                                .categoria(categoria)
+                                .proveedor(proveedor)
+                                .build();
+
+                productoRepository.save(producto);
+                return convertirAResponseDTO(producto);
+        }
+
+        // Actualizar producto
+        // public ProductoResponseDTO actualizar(Integer id, ProductoRequestDTO dto) {
+        // Producto producto = productoRepository.findById(id)
+        // .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado"));
+        //
+        // Categoria categoria = categoriaRepository.findById(dto.getCategoriaId())
+        // .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada"));
+        // Proveedor proveedor = proveedorRepository.findById(dto.getProveedorId())
+        // .orElseThrow(() -> new EntityNotFoundException("Proveedor no encontrado"));
+        //
+        // producto.setNombre(dto.getNombre());
+        // producto.setDescripcion(dto.getDescripcion());
+        // producto.setPrecio(dto.getPrecio());
+        // producto.setMarca(dto.getMarca());
+        // producto.setStockActual(dto.getStockActual());
+        // producto.setStockMinimo(dto.getStockMinimo());
+        // producto.setEstado(dto.getEstado());
+        // producto.setImagenUrl(dto.getImagenUrl());
+        // producto.setCategoria(categoria);
+        // producto.setProveedor(proveedor);
+        //
+        // productoRepository.save(producto);
+        // return convertirAResponseDTO(producto);
+        // }
+
+        public ProductoResponseDTO actualizarConImagen(Integer id, ProductoRequestDTO dto, MultipartFile nuevaImagen) {
+                Producto producto = productoRepository.findById(id)
+                                .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado"));
+
+                Categoria categoria = categoriaRepository.findById(dto.getCategoriaId())
+                                .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada"));
+
+                Proveedor proveedor = proveedorRepository.findById(dto.getProveedorId())
+                                .orElseThrow(() -> new EntityNotFoundException("Proveedor no encontrado"));
+
+                // Si se envía una nueva imagen, la guardamos y reemplazamos la anterior
+                if (nuevaImagen != null && !nuevaImagen.isEmpty()) {
+                        String nuevaUrl = fileStorageService.guardarArchivo(nuevaImagen);
+                        producto.setImagenUrl(nuevaUrl);
+                }
+
+                // Actualizamos el resto de los campos
+                producto.setNombre(dto.getNombre());
+                producto.setDescripcion(dto.getDescripcion());
+                producto.setPrecio(dto.getPrecio());
+                producto.setMarca(dto.getMarca());
+                producto.setStockActual(dto.getStockActual());
+                producto.setStockMinimo(dto.getStockMinimo());
+                producto.setEstado(dto.getEstado() != null ? dto.getEstado() : producto.getEstado());
+                producto.setCategoria(categoria);
+                producto.setProveedor(proveedor);
+
+                productoRepository.save(producto);
+                return convertirAResponseDTO(producto);
+        }
+
+        // Eliminar producto
+        public void eliminar(Integer id) {
+                Producto producto = productoRepository.findById(id)
+                                .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado"));
+
+                producto.setEstado("INACTIVO");
+                productoRepository.save(producto);
+        }
+
+        private ProductoResponseDTO convertirAResponseDTO(Producto producto) {
+                return ProductoResponseDTO.builder()
+                                .id(producto.getIdProducto())
+                                .nombre(producto.getNombre())
+                                .descripcion(producto.getDescripcion())
+                                .precio(producto.getPrecio())
+                                .marca(producto.getMarca())
+                                .imagenUrl(producto.getImagenUrl())
+                                .categoria(producto.getCategoria() != null ? producto.getCategoria().getNombre() : null)
+                                .proveedor(producto.getProveedor() != null ? producto.getProveedor().getNombre() : null)
+                                .build();
+        }
 }

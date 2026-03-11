@@ -3,7 +3,6 @@ package com.globalyofi.backend.controller;
 import com.globalyofi.backend.dto.ProductoRequestDTO;
 import com.globalyofi.backend.dto.ProductoResponseDTO;
 import com.globalyofi.backend.service.ProductoService;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +19,7 @@ public class ProductoController {
     @Autowired
     private ProductoService productoService;
 
-    //Endpoint general (filtros combinados)
+    // Endpoint general (filtros combinados)
     @GetMapping
     public List<ProductoResponseDTO> listarProductos(
             @RequestParam(required = false) Integer categoriaId,
@@ -29,13 +28,18 @@ public class ProductoController {
         return productoService.filtrar(categoriaId, minPrecio, maxPrecio);
     }
 
-    //Buscar por categoría
+    @GetMapping("/{id}")
+    public ProductoResponseDTO obtenerPorId(@PathVariable Integer id) {
+        return productoService.obtenerPorId(id);
+    }
+
+    // Buscar por categoría
     @GetMapping("/categoria/{id}")
     public List<ProductoResponseDTO> obtenerPorCategoria(@PathVariable Integer id) {
         return productoService.obtenerPorCategoria(id);
     }
 
-    //Buscar por rango de precio
+    // Buscar por rango de precio
     @GetMapping("/precio")
     public List<ProductoResponseDTO> obtenerPorPrecio(
             @RequestParam BigDecimal min,
@@ -43,18 +47,18 @@ public class ProductoController {
         return productoService.obtenerPorRango(min, max);
     }
 
-    //Solo ADMIN puede crear productos
+    // Solo ADMIN puede crear productos
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping(consumes = {"multipart/form-data"})
+    @PostMapping(consumes = { "multipart/form-data" })
     public ProductoResponseDTO crearProducto(
             @RequestPart("producto") ProductoRequestDTO dto,
             @RequestPart(value = "imagen", required = false) MultipartFile imagen) {
         return productoService.guardarConImagen(dto, imagen);
     }
 
-    //Actualizar producto (solo ADMIN)
+    // Actualizar producto (solo ADMIN)
     @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
+    @PutMapping(value = "/{id}", consumes = { "multipart/form-data" })
     public ProductoResponseDTO actualizarProducto(
             @PathVariable Integer id,
             @RequestPart("producto") ProductoRequestDTO dto,
@@ -62,7 +66,7 @@ public class ProductoController {
         return productoService.actualizarConImagen(id, dto, imagen);
     }
 
-    //Eliminar producto (solo ADMIN)
+    // Eliminar producto (solo ADMIN)
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public void eliminarProducto(@PathVariable Integer id) {
