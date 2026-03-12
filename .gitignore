@@ -1,3 +1,17 @@
+# Compiled output
+target/
+
+# IDE files
+.idea/
+*.iml
+.eclipse/
+.settings/
+.classpath
+.project
+
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+
 # Compiled class file
 *.class
 
