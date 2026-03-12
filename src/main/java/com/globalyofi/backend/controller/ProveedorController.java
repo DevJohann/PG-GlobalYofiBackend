@@ -18,30 +18,31 @@ public class ProveedorController {
     @Autowired
     private ProveedorService proveedorService;
 
-    //Público: listar proveedores (puede ser visible en catálogos, etc.)
+    // Público: listar proveedores (puede ser visible en catálogos, etc.)
     @GetMapping
     public List<ProveedorResponseDTO> listar() {
         return proveedorService.obtenerTodos();
     }
 
-    //Solo ADMIN puede crear proveedores
+    // Solo ADMIN puede crear proveedores
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ProveedorResponseDTO crear(@Valid @RequestBody ProveedorRequestDTO dto) {
         return proveedorService.crear(dto);
     }
 
-    //Solo ADMIN puede actualizar
+    // Solo ADMIN puede actualizar
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public ProveedorResponseDTO actualizar(@PathVariable Integer id, @Valid @RequestBody ProveedorRequestDTO dto) {
+    public ProveedorResponseDTO actualizar(@PathVariable("id") Integer id,
+            @Valid @RequestBody ProveedorRequestDTO dto) {
         return proveedorService.actualizar(id, dto);
     }
 
-    //Solo ADMIN puede eliminar
+    // Solo ADMIN puede eliminar
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public void eliminar(@PathVariable Integer id) {
+    public void eliminar(@PathVariable("id") Integer id) {
         proveedorService.eliminar(id);
     }
 }

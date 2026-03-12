@@ -22,28 +22,28 @@ public class ProductoController {
     // Endpoint general (filtros combinados)
     @GetMapping
     public List<ProductoResponseDTO> listarProductos(
-            @RequestParam(required = false) Integer categoriaId,
-            @RequestParam(required = false) BigDecimal minPrecio,
-            @RequestParam(required = false) BigDecimal maxPrecio) {
+            @RequestParam(value = "categoriaId", required = false) Integer categoriaId,
+            @RequestParam(value = "minPrecio", required = false) BigDecimal minPrecio,
+            @RequestParam(value = "maxPrecio", required = false) BigDecimal maxPrecio) {
         return productoService.filtrar(categoriaId, minPrecio, maxPrecio);
     }
 
     @GetMapping("/{id}")
-    public ProductoResponseDTO obtenerPorId(@PathVariable Integer id) {
+    public ProductoResponseDTO obtenerPorId(@PathVariable("id") Integer id) {
         return productoService.obtenerPorId(id);
     }
 
     // Buscar por categoría
     @GetMapping("/categoria/{id}")
-    public List<ProductoResponseDTO> obtenerPorCategoria(@PathVariable Integer id) {
+    public List<ProductoResponseDTO> obtenerPorCategoria(@PathVariable("id") Integer id) {
         return productoService.obtenerPorCategoria(id);
     }
 
     // Buscar por rango de precio
     @GetMapping("/precio")
     public List<ProductoResponseDTO> obtenerPorPrecio(
-            @RequestParam BigDecimal min,
-            @RequestParam BigDecimal max) {
+            @RequestParam("min") BigDecimal min,
+            @RequestParam("max") BigDecimal max) {
         return productoService.obtenerPorRango(min, max);
     }
 
@@ -60,7 +60,7 @@ public class ProductoController {
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping(value = "/{id}", consumes = { "multipart/form-data" })
     public ProductoResponseDTO actualizarProducto(
-            @PathVariable Integer id,
+            @PathVariable("id") Integer id,
             @RequestPart("producto") ProductoRequestDTO dto,
             @RequestPart(value = "imagen", required = false) MultipartFile imagen) {
         return productoService.actualizarConImagen(id, dto, imagen);
@@ -69,7 +69,7 @@ public class ProductoController {
     // Eliminar producto (solo ADMIN)
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public void eliminarProducto(@PathVariable Integer id) {
+    public void eliminarProducto(@PathVariable("id") Integer id) {
         productoService.eliminar(id);
     }
 }

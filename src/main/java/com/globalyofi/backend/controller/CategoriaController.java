@@ -18,30 +18,31 @@ public class CategoriaController {
     @Autowired
     private CategoriaService categoriaService;
 
-    //Público: listar categorías
+    // Público: listar categorías
     @GetMapping
     public List<CategoriaResponseDTO> listar() {
         return categoriaService.obtenerTodas();
     }
 
-    //Solo ADMIN puede crear categorías
+    // Solo ADMIN puede crear categorías
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public CategoriaResponseDTO crear(@Valid @RequestBody CategoriaRequestDTO dto) {
         return categoriaService.crear(dto);
     }
 
-    //Solo ADMIN puede actualizar
+    // Solo ADMIN puede actualizar
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public CategoriaResponseDTO actualizar(@PathVariable Integer id, @Valid @RequestBody CategoriaRequestDTO dto) {
+    public CategoriaResponseDTO actualizar(@PathVariable("id") Integer id,
+            @Valid @RequestBody CategoriaRequestDTO dto) {
         return categoriaService.actualizar(id, dto);
     }
 
-    //Solo ADMIN puede eliminar
+    // Solo ADMIN puede eliminar
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public void eliminar(@PathVariable Integer id) {
+    public void eliminar(@PathVariable("id") Integer id) {
         categoriaService.eliminar(id);
     }
 }
