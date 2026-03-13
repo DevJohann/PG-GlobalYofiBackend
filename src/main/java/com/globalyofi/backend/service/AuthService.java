@@ -1,6 +1,8 @@
 package com.globalyofi.backend.service;
 
+import com.globalyofi.backend.entity.Cliente;
 import com.globalyofi.backend.entity.Usuario;
+import com.globalyofi.backend.repository.ClienteRepository;
 import com.globalyofi.backend.repository.UsuarioRepository;
 import com.globalyofi.backend.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,9 @@ public class AuthService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private ClienteRepository clienteRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -48,6 +53,25 @@ public class AuthService {
             String token = jwtUtil.generateToken(usuario.getEmail(), usuario.getRol());
 
             Map<String, Object> response = new HashMap<>();
+            
+            // Lógica para devolver el ID correcto (idCliente si es CLIENTE, idUsuario si es ADMIN)
+            Integer idParaFrontend;
+            if ("CLIENTE".equals(usuario.getRol())) {
+                idParaFrontend = clienteRepository.findByUsuario(usuario)
+                        .map(Cliente::getIdCliente)
+                        .orElseGet(() -> {
+                            // Si es un cliente antiguo que no tiene perfil, lo creamos on-the-fly
+                            Cliente nuevoCliente = Cliente.builder()
+                                    .usuario(usuario)
+                                    .fechaRegistro(java.time.LocalDateTime.now())
+                                    .build();
+                            return clienteRepository.save(nuevoCliente).getIdCliente();
+                        });
+            } else {
+                idParaFrontend = usuario.getIdUsuario();
+            }
+
+            response.put("id", idParaFrontend);
             response.put("token", token);
             response.put("rol", usuario.getRol());
             response.put("nombre", usuario.getNombre());
