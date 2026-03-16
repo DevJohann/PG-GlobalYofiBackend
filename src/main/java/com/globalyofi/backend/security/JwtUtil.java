@@ -15,8 +15,11 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-    private final long expiration = 1000 * 60 * 60 * 4; // 4 horas
+    // Llave estática para evitar que las sesiones expiren al reiniciar el servidor
+    // En producción, esto debería venir de una variable de entorno
+    private static final String SECRET_KEY_BASE64 = "YmNiMGY1NmE0MGI3NmE0ZTNmYmI5ODlmMGI0ZTM3Y2Y5YWIzYjU5ZDA4ZTNhZjY0MmU1ZGU4YWE4Zjk3M2U0Yg==";
+    private final Key key = Keys.hmacShaKeyFor(io.jsonwebtoken.io.Decoders.BASE64.decode(SECRET_KEY_BASE64));
+    private final long expiration = 1000 * 60 * 60 * 24 * 7; // 7 días para evitar problemas de desfase horario
 
     public String generateToken(String username, String role) {
         Map<String, Object> claims = new HashMap<>();

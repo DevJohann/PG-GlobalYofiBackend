@@ -22,6 +22,8 @@ public class AuthUserDetailsService implements UserDetailsService {
                 .username(usuario.getEmail())
                 .password(usuario.getContrasena())
                 .roles(usuario.getRol() != null ? usuario.getRol().toUpperCase() : "CLIENTE")
+                // Nota: .roles("ADMIN") en Spring Security genera automáticamente "ROLE_ADMIN"
+                // Pero lo dejamos así que es la forma estándar de User.builder()
                 .disabled(!usuario.isActivo())
                 .build();
     }

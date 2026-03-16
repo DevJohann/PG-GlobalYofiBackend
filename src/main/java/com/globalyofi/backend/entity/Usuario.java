@@ -1,5 +1,6 @@
 package com.globalyofi.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -48,14 +49,15 @@ public class Usuario {
     // ========================
 
     // Un usuario puede tener varios movimientos en el inventario
+    @JsonIgnore
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = false)
     private List<Inventario> movimientosInventario;
 
-    // Un usuario puede tener varios reportes
+    @JsonIgnore
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = false)
     private List<Reporte> reportes;
 
-    // Un usuario puede ser un cliente (1:1)
+    @JsonIgnore
     @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
     private Cliente cliente;
 }

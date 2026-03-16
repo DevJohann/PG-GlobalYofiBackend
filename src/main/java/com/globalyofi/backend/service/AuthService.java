@@ -51,6 +51,10 @@ public class AuthService {
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
             String token = jwtUtil.generateToken(usuario.getEmail(), usuario.getRol());
+            
+            System.out.println("DEBUG [Auth]: Login successful for " + email);
+            System.out.println("DEBUG [Auth]: Server Time: " + java.time.LocalDateTime.now());
+            System.out.println("DEBUG [Auth]: Token IAT (approx): " + System.currentTimeMillis() / 1000);
 
             Map<String, Object> response = new HashMap<>();
             

@@ -33,17 +33,27 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         final String path = request.getRequestURI();
 
         // 🟢 PUBLIC PATHS: skip filter entirely
-        if (path.startsWith("/api/auth/") ||
-                path.startsWith("/api/productos/") ||
-                path.startsWith("/api/categorias/") ||
-                path.startsWith("/api/proveedores/") ||
-                path.startsWith("/uploads/")) {
+        logger.debug("Request Path: " + path);
+        
+        if (path.contains("/api/auth/") ||
+                path.contains("/api/productos/") ||
+                path.contains("/api/categorias/") ||
+                path.contains("/api/proveedores/") ||
+                path.contains("/uploads/")) {
+            logger.debug("Public path bypassed: " + path);
             filterChain.doFilter(request, response);
             return;
         }
 
         // 🛑 VALIDATION: check if header exists and is valid
-        if (authHeader == null || !authHeader.startsWith("Bearer ") || authHeader.contains("null")) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            logger.debug("No Authorization header or not Bearer - Path: " + path);
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        if (authHeader.contains("null") || authHeader.length() < 15) {
+            logger.warn("Potentially invalid token detected: " + authHeader + " - Path: " + path);
             filterChain.doFilter(request, response);
             return;
         }
@@ -61,11 +71,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                             null,
                             userDetails.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                    logger.debug("Authentication successful for user: " + username);
+                } else {
+                    logger.warn("Token validation failed for user: " + username);
                 }
             }
         } catch (Exception e) {
-            // Log or ignore invalid token attempts
-            logger.warn("JWT validation failed: " + e.getMessage());
+            logger.error("Authentication ERROR: " + e.getMessage() + " - Path: " + path);
         }
 
         filterChain.doFilter(request, response);

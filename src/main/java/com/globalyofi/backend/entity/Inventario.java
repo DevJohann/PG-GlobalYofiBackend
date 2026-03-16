@@ -1,5 +1,6 @@
 package com.globalyofi.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,6 +23,7 @@ public class Inventario {
     @JoinColumn(name = "producto_id", nullable = false)
     private Producto producto;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
