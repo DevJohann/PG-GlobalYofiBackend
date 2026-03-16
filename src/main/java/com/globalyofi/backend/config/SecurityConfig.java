@@ -60,6 +60,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Rutas públicas redundantes (ya están en ignoring(), pero por seguridad)
                         .requestMatchers("/api/auth/**", "/api/productos/**", "/api/categorias/**", "/api/proveedores/**", "/uploads/**").permitAll()
+                        
+                        // REGLAS PARA PEDIDOS
+                        // 1. Cualquier usuario autenticado puede realizar pedidos
+                        .requestMatchers(HttpMethod.POST, "/api/pedidos/realizar").authenticated()
+                        // 2. Solo ADMIN puede ver lista completa y detalles técnicos
+                        .requestMatchers(HttpMethod.GET, "/api/pedidos/**").hasRole("ADMIN")
+                        
                         // El resto de rutas requieren autenticación
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

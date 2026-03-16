@@ -1,11 +1,13 @@
 package com.globalyofi.backend.controller;
 
-import com.globalyofi.backend.entity.Pedido;
+import com.globalyofi.backend.dto.PedidoRequestDTO;
+import com.globalyofi.backend.dto.PedidoResponseDTO;
 import com.globalyofi.backend.service.PedidoService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/pedidos")
@@ -16,11 +18,25 @@ public class PedidoController {
     private final PedidoService pedidoService;
 
     @PostMapping("/realizar")
-    public Pedido realizarPedido(@RequestBody Map<String, Object> request) {
-        Integer clienteId = (Integer) request.get("clienteId");
-        String metodoPago = (String) request.get("metodoPago");
-        String direccion = (String) request.get("direccion");
-        String ciudad = (String) request.get("ciudad");
-        return pedidoService.realizarPedido(clienteId, metodoPago, direccion, ciudad);
+    @PreAuthorize("isAuthenticated()")
+    public PedidoResponseDTO realizarPedido(@RequestBody PedidoRequestDTO request) {
+        return pedidoService.realizarPedido(
+                request.getClienteId(),
+                request.getMetodoPago(),
+                request.getDireccion(),
+                request.getCiudad()
+        );
+    }
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<PedidoResponseDTO> listarPedidos() {
+        return pedidoService.obtenerTodos();
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public PedidoResponseDTO obtenerDetallePedido(@PathVariable Integer id) {
+        return pedidoService.obtenerPorId(id);
     }
 }
