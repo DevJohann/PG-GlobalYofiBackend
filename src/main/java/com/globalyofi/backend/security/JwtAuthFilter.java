@@ -32,22 +32,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         final String authHeader = request.getHeader("Authorization");
         final String path = request.getRequestURI();
 
-        // 🟢 PUBLIC PATHS: skip filter entirely
-        logger.debug("Request Path: " + path);
-        
-        if (path.contains("/api/auth/") ||
-                path.contains("/api/productos/") ||
-                path.contains("/api/categorias/") ||
-                path.contains("/api/proveedores/") ||
-                path.contains("/uploads/")) {
-            logger.debug("Public path bypassed: " + path);
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        // 🛑 VALIDATION: check if header exists and is valid
+        // Validamos si hay un encabezado de autorización
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            logger.debug("No Authorization header or not Bearer - Path: " + path);
             filterChain.doFilter(request, response);
             return;
         }

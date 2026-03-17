@@ -5,12 +5,14 @@ import com.globalyofi.backend.dto.ProductoResponseDTO;
 import com.globalyofi.backend.entity.Categoria;
 import com.globalyofi.backend.entity.Producto;
 import com.globalyofi.backend.entity.Proveedor;
-import com.globalyofi.backend.repository.CategoriaRepository;
-import com.globalyofi.backend.repository.ProductoRepository;
-import com.globalyofi.backend.repository.ProveedorRepository;
+import com.globalyofi.backend.entity.Inventario;
+import com.globalyofi.backend.entity.Usuario;
+import com.globalyofi.backend.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
@@ -29,6 +31,12 @@ public class ProductoService {
 
         @Autowired
         private ProveedorRepository proveedorRepository;
+        
+        @Autowired
+        private InventarioRepository inventarioRepository;
+
+        @Autowired
+        private UsuarioRepository usuarioRepository;
 
         @Autowired
         private FileStorageService fileStorageService;
@@ -36,6 +44,7 @@ public class ProductoService {
         public List<ProductoResponseDTO> obtenerTodos() {
                 return productoRepository.findAll()
                                 .stream()
+                                .filter(p -> "ACTIVO".equalsIgnoreCase(p.getEstado())) // Solo activos
                                 .map(this::convertirAResponseDTO)
                                 .collect(Collectors.toList());
         }
@@ -51,6 +60,7 @@ public class ProductoService {
         public List<ProductoResponseDTO> filtrar(Integer categoriaId, BigDecimal minPrecio, BigDecimal maxPrecio) {
                 return productoRepository.buscarPorFiltros(categoriaId, minPrecio, maxPrecio)
                                 .stream()
+                                .filter(p -> "ACTIVO".equalsIgnoreCase(p.getEstado()))
                                 .map(this::convertirAResponseDTO)
                                 .collect(Collectors.toList());
         }
@@ -59,6 +69,7 @@ public class ProductoService {
         public List<ProductoResponseDTO> obtenerPorCategoria(Integer categoriaId) {
                 return productoRepository.findByCategoriaIdCategoria(categoriaId)
                                 .stream()
+                                .filter(p -> "ACTIVO".equalsIgnoreCase(p.getEstado()))
                                 .map(this::convertirAResponseDTO)
                                 .collect(Collectors.toList());
         }
@@ -67,6 +78,7 @@ public class ProductoService {
         public List<ProductoResponseDTO> obtenerPorRango(BigDecimal min, BigDecimal max) {
                 return productoRepository.findByPrecioBetween(min, max)
                                 .stream()
+                                .filter(p -> "ACTIVO".equalsIgnoreCase(p.getEstado()))
                                 .map(this::convertirAResponseDTO)
                                 .collect(Collectors.toList());
         }
@@ -98,6 +110,7 @@ public class ProductoService {
         // }
 
         // Metodo para guardar imagen en el backend
+        @Transactional
         public ProductoResponseDTO guardarConImagen(ProductoRequestDTO dto, MultipartFile imagen) {
                 Categoria categoria = categoriaRepository.findById(dto.getCategoriaId())
                                 .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada"));
@@ -125,8 +138,12 @@ public class ProductoService {
                                 .proveedor(proveedor)
                                 .build();
 
-                productoRepository.save(producto);
-                return convertirAResponseDTO(producto);
+                Producto guardado = productoRepository.save(producto);
+                
+                // Registrar movimiento inicial en inventario
+                registrarMovimiento(guardado, "entrada", dto.getStockActual(), 0, dto.getStockActual(), "Carga inicial de producto");
+                
+                return convertirAResponseDTO(guardado);
         }
 
         // Actualizar producto
@@ -154,6 +171,7 @@ public class ProductoService {
         // return convertirAResponseDTO(producto);
         // }
 
+        @Transactional
         public ProductoResponseDTO actualizarConImagen(Integer id, ProductoRequestDTO dto, MultipartFile nuevaImagen) {
                 Producto producto = productoRepository.findById(id)
                                 .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado"));
@@ -164,6 +182,8 @@ public class ProductoService {
                 Proveedor proveedor = proveedorRepository.findById(dto.getProveedorId())
                                 .orElseThrow(() -> new EntityNotFoundException("Proveedor no encontrado"));
 
+                Integer stockAnterior = producto.getStockActual();
+                
                 // Si se envía una nueva imagen, la guardamos y reemplazamos la anterior
                 if (nuevaImagen != null && !nuevaImagen.isEmpty()) {
                         String nuevaUrl = fileStorageService.guardarArchivo(nuevaImagen);
@@ -181,17 +201,60 @@ public class ProductoService {
                 producto.setCategoria(categoria);
                 producto.setProveedor(proveedor);
 
-                productoRepository.save(producto);
-                return convertirAResponseDTO(producto);
+                Producto guardado = productoRepository.save(producto);
+                
+                // Si hubo cambio de stock, registrar movimiento
+                if (!stockAnterior.equals(dto.getStockActual())) {
+                    String tipo = dto.getStockActual() > stockAnterior ? "entrada" : "salida";
+                    int diferencia = Math.abs(dto.getStockActual() - stockAnterior);
+                    registrarMovimiento(guardado, tipo, diferencia, stockAnterior, dto.getStockActual(), "Actualización de stock vía panel admin");
+                }
+                
+                return convertirAResponseDTO(guardado);
         }
 
-        // Eliminar producto
+        private void registrarMovimiento(Producto producto, String tipo, Integer cantidad, Integer anterior, Integer nuevo, String obs) {
+            var auth = SecurityContextHolder.getContext().getAuthentication();
+            String email = (auth != null && auth.isAuthenticated()) ? auth.getName() : "sistema@globalyofi.com";
+
+            Usuario usuario = usuarioRepository.findByEmail(email)
+                    .orElseGet(() -> {
+                        // Si no hay usuario en sesión, buscar un usuario admin por defecto o el primero que exista
+                        return usuarioRepository.findAll().stream()
+                                .filter(u -> "ADMIN".equals(u.getRol()))
+                                .findFirst()
+                                .orElseThrow(() -> new RuntimeException("No se encontró un usuario válido para registrar el movimiento"));
+                    });
+
+            Inventario movimiento = Inventario.builder()
+                    .producto(producto)
+                    .usuario(usuario)
+                    .tipoMovimiento(tipo)
+                    .cantidad(cantidad)
+                    .stockAnterior(anterior)
+                    .stockNuevo(nuevo)
+                    .fechaMovimiento(LocalDateTime.now())
+                    .observaciones(obs)
+                    .build();
+
+            inventarioRepository.save(movimiento);
+        }
+
+        @Transactional
         public void eliminar(Integer id) {
                 Producto producto = productoRepository.findById(id)
                                 .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado"));
 
+                Integer stockAnterior = producto.getStockActual();
                 producto.setEstado("INACTIVO");
+                producto.setStockActual(0); // Vaciamos stock al inactivar
+                
                 productoRepository.save(producto);
+                
+                // Registrar salida total de inventario si había stock
+                if (stockAnterior > 0) {
+                    registrarMovimiento(producto, "salida", stockAnterior, stockAnterior, 0, "Producto marcado como INACTIVO - Eliminación lógica");
+                }
         }
 
         private ProductoResponseDTO convertirAResponseDTO(Producto producto) {
@@ -204,6 +267,11 @@ public class ProductoService {
                                 .imagenUrl(producto.getImagenUrl())
                                 .categoria(producto.getCategoria() != null ? producto.getCategoria().getNombre() : null)
                                 .proveedor(producto.getProveedor() != null ? producto.getProveedor().getNombre() : null)
+                                .categoriaId(producto.getCategoria() != null ? producto.getCategoria().getIdCategoria() : null)
+                                .proveedorId(producto.getProveedor() != null ? producto.getProveedor().getIdProveedor() : null)
+                                .stockActual(producto.getStockActual())
+                                .stockMinimo(producto.getStockMinimo())
+                                .estado(producto.getEstado())
                                 .build();
         }
 }

@@ -3,6 +3,7 @@ package com.globalyofi.backend.controller;
 import com.globalyofi.backend.dto.ProductoRequestDTO;
 import com.globalyofi.backend.dto.ProductoResponseDTO;
 import com.globalyofi.backend.service.ProductoService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -51,7 +52,7 @@ public class ProductoController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(consumes = { "multipart/form-data" })
     public ProductoResponseDTO crearProducto(
-            @RequestPart("producto") ProductoRequestDTO dto,
+            @RequestPart("producto") @Valid ProductoRequestDTO dto,
             @RequestPart(value = "imagen", required = false) MultipartFile imagen) {
         return productoService.guardarConImagen(dto, imagen);
     }
@@ -61,7 +62,7 @@ public class ProductoController {
     @PutMapping(value = "/{id}", consumes = { "multipart/form-data" })
     public ProductoResponseDTO actualizarProducto(
             @PathVariable("id") Integer id,
-            @RequestPart("producto") ProductoRequestDTO dto,
+            @RequestPart("producto") @Valid ProductoRequestDTO dto,
             @RequestPart(value = "imagen", required = false) MultipartFile imagen) {
         return productoService.actualizarConImagen(id, dto, imagen);
     }
