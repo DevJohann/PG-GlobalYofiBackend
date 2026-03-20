@@ -123,6 +123,15 @@ public class PedidoService {
         return mapToDTO(pedido);
     }
 
+    @Transactional
+    public PedidoResponseDTO actualizarEstado(Integer id, String nuevoEstado) {
+        Pedido pedido = pedidoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Pedido no encontrado con ID: " + id));
+        pedido.setEstado(nuevoEstado);
+        Pedido pedidoGuardado = pedidoRepository.save(pedido);
+        return mapToDTO(pedidoGuardado);
+    }
+
     private PedidoResponseDTO mapToDTO(Pedido pedido) {
         List<DetallePedidoDTO> detallesDTO = pedido.getDetalles().stream()
                 .map(d -> DetallePedidoDTO.builder()
@@ -136,16 +145,16 @@ public class PedidoService {
                 .collect(Collectors.toList());
 
         return PedidoResponseDTO.builder()
-                .idPedido(pedido.getIdPedido())
+                .id(pedido.getIdPedido())
                 .clienteId(pedido.getCliente().getIdCliente())
                 .nombreCliente(pedido.getCliente().getUsuario().getNombre())
                 .fechaPedido(pedido.getFechaPedido())
                 .total(pedido.getTotal())
                 .estado(pedido.getEstado())
                 .metodoPago(pedido.getMetodoPago())
-                .direccionEnvio(pedido.getDireccionEnvio())
-                .ciudadEnvio(pedido.getCiudadEnvio())
-                .detalles(detallesDTO)
+                .direccion(pedido.getDireccionEnvio())
+                .ciudad(pedido.getCiudadEnvio())
+                .items(detallesDTO)
                 .build();
     }
 }

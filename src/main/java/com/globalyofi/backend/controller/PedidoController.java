@@ -1,5 +1,6 @@
 package com.globalyofi.backend.controller;
 
+import com.globalyofi.backend.dto.EstadoPedidoRequestDTO;
 import com.globalyofi.backend.dto.PedidoRequestDTO;
 import com.globalyofi.backend.dto.PedidoResponseDTO;
 import com.globalyofi.backend.service.PedidoService;
@@ -36,7 +37,13 @@ public class PedidoController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public PedidoResponseDTO obtenerDetallePedido(@PathVariable Integer id) {
+    public PedidoResponseDTO obtenerDetallePedido(@PathVariable("id") Integer id) {
         return pedidoService.obtenerPorId(id);
+    }
+
+    @PutMapping("/{id}/estado")
+    @PreAuthorize("hasRole('ADMIN')")
+    public PedidoResponseDTO actualizarEstado(@PathVariable("id") Integer id, @RequestBody EstadoPedidoRequestDTO request) {
+        return pedidoService.actualizarEstado(id, request.getEstado());
     }
 }

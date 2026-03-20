@@ -14,7 +14,7 @@ public class ClienteController {
     private final ClienteRepository clienteRepository;
 
     @GetMapping("/{id}")
-    public Cliente getCliente(@PathVariable Integer id) {
+    public Cliente getCliente(@PathVariable("id") Integer id) {
         return clienteRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
     }
