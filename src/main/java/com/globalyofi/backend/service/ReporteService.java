@@ -1,6 +1,7 @@
 package com.globalyofi.backend.service;
 
 import com.globalyofi.backend.entity.Producto;
+import com.globalyofi.backend.repository.ClienteRepository;
 import com.globalyofi.backend.repository.ProductoRepository;
 import com.globalyofi.backend.repository.ReporteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,9 @@ public class ReporteService {
 
     @Autowired
     private ReporteRepository reporteRepository;
+
+    @Autowired
+    private ClienteRepository clienteRepository;
 
     //Productos agrupados por categoría
     public Map<String, Long> obtenerProductosPorCategoria() {
@@ -136,5 +140,9 @@ public class ReporteService {
                         "usuario", r[4]
                 ))
                 .collect(Collectors.toList());
+    }
+
+    public Long obtenerTotalClientes() {
+        return clienteRepository.count();
     }
 }

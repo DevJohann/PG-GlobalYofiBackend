@@ -94,4 +94,10 @@ public class ReporteController {
         return reporteService.obtenerHistorialInventario();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/clientes-total")
+    public Long obtenerTotalClientes() {
+        return reporteService.obtenerTotalClientes();
+    }
+
 }
