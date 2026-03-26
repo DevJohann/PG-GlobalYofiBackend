@@ -20,13 +20,15 @@ public class ProductoController {
     @Autowired
     private ProductoService productoService;
 
-    // Endpoint general (filtros combinados)
+    // Endpoint general (filtros combinados profesionales)
     @GetMapping
     public List<ProductoResponseDTO> listarProductos(
-            @RequestParam(value = "categoriaId", required = false) Integer categoriaId,
+            @RequestParam(value = "categoriaIds", required = false) List<Integer> categoriaIds,
             @RequestParam(value = "minPrecio", required = false) BigDecimal minPrecio,
-            @RequestParam(value = "maxPrecio", required = false) BigDecimal maxPrecio) {
-        return productoService.filtrar(categoriaId, minPrecio, maxPrecio);
+            @RequestParam(value = "maxPrecio", required = false) BigDecimal maxPrecio,
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "sortBy", required = false) String sortBy) {
+        return productoService.filtrar(categoriaIds, minPrecio, maxPrecio, search, sortBy);
     }
 
     @GetMapping("/{id}")

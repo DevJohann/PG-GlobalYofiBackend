@@ -11,6 +11,9 @@ import com.globalyofi.backend.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -56,11 +59,30 @@ public class ProductoService {
                 return convertirAResponseDTO(producto);
         }
 
-        // Filtro general
-        public List<ProductoResponseDTO> filtrar(Integer categoriaId, BigDecimal minPrecio, BigDecimal maxPrecio) {
-                return productoRepository.buscarPorFiltros(categoriaId, minPrecio, maxPrecio)
+        // Filtro general avanzado profesional
+        public List<ProductoResponseDTO> filtrar(List<Integer> categoriaIds, BigDecimal minPrecio, BigDecimal maxPrecio,
+                        String search, String sortBy) {
+
+                Sort sort = Sort.by("nombre").ascending(); // Default sort
+
+                if (sortBy != null) {
+                        switch (sortBy) {
+                                case "price-asc":
+                                        sort = Sort.by("precio").ascending();
+                                        break;
+                                case "price-desc":
+                                        sort = Sort.by("precio").descending();
+                                        break;
+                                case "name-asc":
+                                        sort = Sort.by("nombre").ascending();
+                                        break;
+                        }
+                }
+
+                Pageable pageable = PageRequest.of(0, 100, sort);
+
+                return productoRepository.buscarPorFiltros(categoriaIds, minPrecio, maxPrecio, search, pageable)
                                 .stream()
-                                .filter(p -> "ACTIVO".equalsIgnoreCase(p.getEstado()))
                                 .map(this::convertirAResponseDTO)
                                 .collect(Collectors.toList());
         }
