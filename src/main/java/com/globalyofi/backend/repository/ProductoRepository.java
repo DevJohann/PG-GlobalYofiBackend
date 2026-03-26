@@ -23,11 +23,12 @@ public interface ProductoRepository extends JpaRepository<Producto, Integer> {
             "(:minPrecio IS NULL OR p.precio >= :minPrecio) AND " +
             "(:maxPrecio IS NULL OR p.precio <= :maxPrecio) AND " +
             "(:search IS NULL OR LOWER(p.nombre) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(p.marca) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
-            "p.estado = 'ACTIVO'")
+            "(:estado IS NULL OR p.estado = :estado)")
     List<Producto> buscarPorFiltros(
             @Param("categoriaIds") List<Integer> categoriaIds,
             @Param("minPrecio") BigDecimal minPrecio,
             @Param("maxPrecio") BigDecimal maxPrecio,
             @Param("search") String search,
+            @Param("estado") String estado,
             Pageable pageable);
 }

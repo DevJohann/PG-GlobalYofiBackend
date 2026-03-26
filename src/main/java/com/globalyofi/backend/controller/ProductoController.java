@@ -27,8 +27,15 @@ public class ProductoController {
             @RequestParam(value = "minPrecio", required = false) BigDecimal minPrecio,
             @RequestParam(value = "maxPrecio", required = false) BigDecimal maxPrecio,
             @RequestParam(value = "search", required = false) String search,
-            @RequestParam(value = "sortBy", required = false) String sortBy) {
-        return productoService.filtrar(categoriaIds, minPrecio, maxPrecio, search, sortBy);
+            @RequestParam(value = "sortBy", required = false) String sortBy,
+            @RequestParam(value = "estado", required = false) String estado) {
+        
+        // Si no hay filtros específicos, devolvemos todos (incluyendo inactivos para admin si el service lo permite)
+        if (categoriaIds == null && minPrecio == null && maxPrecio == null && search == null && estado == null) {
+            return productoService.obtenerTodos();
+        }
+
+        return productoService.filtrar(categoriaIds, minPrecio, maxPrecio, search, sortBy, estado);
     }
 
     @GetMapping("/{id}")

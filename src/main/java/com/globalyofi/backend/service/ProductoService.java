@@ -60,7 +60,7 @@ public class ProductoService {
 
         // Filtro general avanzado profesional
         public List<ProductoResponseDTO> filtrar(List<Integer> categoriaIds, BigDecimal minPrecio, BigDecimal maxPrecio,
-                        String search, String sortBy) {
+                        String search, String sortBy, String estado) {
 
                 Sort sort = Sort.by("nombre").ascending(); // Default sort
 
@@ -80,7 +80,7 @@ public class ProductoService {
 
                 Pageable pageable = PageRequest.of(0, 100, sort);
 
-                return productoRepository.buscarPorFiltros(categoriaIds, minPrecio, maxPrecio, search, pageable)
+                return productoRepository.buscarPorFiltros(categoriaIds, minPrecio, maxPrecio, search, estado, pageable)
                                 .stream()
                                 .map(this::convertirAResponseDTO)
                                 .collect(Collectors.toList());
