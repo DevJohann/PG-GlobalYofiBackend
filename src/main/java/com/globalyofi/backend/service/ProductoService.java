@@ -47,7 +47,6 @@ public class ProductoService {
         public List<ProductoResponseDTO> obtenerTodos() {
                 return productoRepository.findAll()
                                 .stream()
-                                .filter(p -> "ACTIVO".equalsIgnoreCase(p.getEstado())) // Solo activos
                                 .map(this::convertirAResponseDTO)
                                 .collect(Collectors.toList());
         }

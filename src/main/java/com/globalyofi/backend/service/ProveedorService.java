@@ -66,8 +66,7 @@ public class ProveedorService {
     public void eliminar(Integer id) {
         Proveedor proveedor = proveedorRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Proveedor no encontrado"));
-        proveedor.setEstado("INACTIVO");
-        proveedorRepository.save(proveedor);
+        proveedorRepository.delete(proveedor);
     }
 
     private ProveedorResponseDTO convertirAResponse(Proveedor proveedor) {

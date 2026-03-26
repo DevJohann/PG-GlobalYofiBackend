@@ -14,6 +14,7 @@ import java.util.List;
 public class ClienteService {
 
     private final ClienteRepository clienteRepository;
+    private final com.globalyofi.backend.repository.UsuarioRepository usuarioRepository;
 
     public List<Cliente> listarTodos() {
         return clienteRepository.findAll();
@@ -57,9 +58,15 @@ public class ClienteService {
 
     @Transactional
     public void eliminar(Integer id) {
-        if (!clienteRepository.existsById(id)) {
-            throw new RuntimeException("Cliente no encontrado con ID: " + id);
+        Cliente cliente = obtenerPorId(id);
+        Usuario usuario = cliente.getUsuario();
+        
+        if (usuario != null) {
+            // Un usuario puede tener varios movimientos en el inventario o reportes
+            // pero para un CLIENTE usualmente no hay estos registros o queremos borrarlos
+            usuarioRepository.delete(usuario);
+        } else {
+            clienteRepository.delete(cliente);
         }
-        clienteRepository.deleteById(id);
     }
 }
