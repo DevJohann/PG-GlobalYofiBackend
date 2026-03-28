@@ -7,6 +7,7 @@ import com.globalyofi.backend.service.PedidoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,6 +30,13 @@ public class PedidoController {
     @PreAuthorize("hasRole('ADMIN')")
     public List<PedidoResponseDTO> listarPedidos() {
         return pedidoService.obtenerTodos();
+    }
+
+    @GetMapping("/mis-pedidos")
+    @PreAuthorize("isAuthenticated()")
+    public List<PedidoResponseDTO> listarMisPedidos(Authentication authentication) {
+        String email = authentication.getName();
+        return pedidoService.obtenerMisPedidos(email);
     }
 
     @GetMapping("/{id}")

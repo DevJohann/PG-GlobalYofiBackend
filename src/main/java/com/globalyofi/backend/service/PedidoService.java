@@ -18,6 +18,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PedidoService {
 
+    // Constantes para estados de pedido (Estilo Amazon)
+    public static final String ESTADO_PENDIENTE = "Pendiente de envío";
+    public static final String ESTADO_PREPARANDO = "Preparando envío";
+    public static final String ESTADO_ENVIADO = "Enviado";
+    public static final String ESTADO_EN_REPARTO = "En reparto";
+    public static final String ESTADO_ENTREGADO = "Entregado";
+
     private final PedidoRepository pedidoRepository;
     private final CarritoRepository carritoRepository;
     private final ProductoRepository productoRepository;
@@ -74,7 +81,7 @@ public class PedidoService {
                 .cliente(cliente)
                 .fechaPedido(LocalDateTime.now())
                 .total(carrito.getTotalEstimado())
-                .estado("PENDIENTE")
+                .estado(ESTADO_PENDIENTE)
                 .metodoPago(metodoPago)
                 .ciudadEnvio(ciudad != null ? ciudad : cliente.getCiudad())
                 .direccionEnvio(direccion != null ? direccion : cliente.getDireccion())
@@ -129,6 +136,12 @@ public class PedidoService {
     public List<PedidoResponseDTO> obtenerTodos() {
         return pedidoRepository.findAll().stream()
                 .sorted((p1, p2) -> p2.getFechaPedido().compareTo(p1.getFechaPedido()))
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<PedidoResponseDTO> obtenerMisPedidos(String email) {
+        return pedidoRepository.findByClienteUsuarioEmailOrderByFechaPedidoDesc(email).stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }

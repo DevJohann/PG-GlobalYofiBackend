@@ -59,8 +59,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**", "/api/productos/**", "/api/categorias/**", "/api/proveedores/**", "/uploads/**").permitAll()
                         
                         // REGLAS PARA PEDIDOS
-                        // 1. Cualquier usuario autenticado puede realizar pedidos
+                        // 1. Cualquier usuario autenticado puede realizar pedidos y ver sus propios pedidos
                         .requestMatchers(HttpMethod.POST, "/api/pedidos/realizar").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/pedidos/mis-pedidos").authenticated()
                         // 2. Solo ADMIN puede ver lista completa y detalles técnicos
                         .requestMatchers(HttpMethod.GET, "/api/pedidos/**").hasRole("ADMIN")
                         

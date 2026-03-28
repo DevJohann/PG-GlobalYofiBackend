@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface PedidoRepository extends JpaRepository<Pedido, Integer> {
     List<Pedido> findByClienteIdClienteOrderByFechaPedidoDesc(Integer idCliente);
+    List<Pedido> findByClienteUsuarioEmailOrderByFechaPedidoDesc(String email);
 }
