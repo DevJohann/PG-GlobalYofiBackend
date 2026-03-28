@@ -1,6 +1,7 @@
 package com.globalyofi.backend.service;
 
 import com.globalyofi.backend.dto.DetallePedidoDTO;
+import com.globalyofi.backend.dto.PedidoRequestDTO;
 import com.globalyofi.backend.dto.PedidoResponseDTO;
 import com.globalyofi.backend.entity.*;
 import com.globalyofi.backend.repository.*;
@@ -23,7 +24,12 @@ public class PedidoService {
     private final InventarioRepository inventarioRepository;
 
     @Transactional
-    public PedidoResponseDTO realizarPedido(Integer clienteId, String metodoPago, String direccion, String ciudad) {
+    public PedidoResponseDTO realizarPedido(PedidoRequestDTO request) {
+        Integer clienteId = request.getClienteId();
+        String metodoPago = request.getMetodoPago();
+        String direccion = request.getDireccion();
+        String ciudad = request.getCiudad();
+
         // 1. Obtener carrito activo
         Carrito carrito = carritoRepository.findByClienteIdAndEstado(clienteId, "activo")
                 .orElseThrow(() -> new RuntimeException("No hay un carrito activo para este cliente"));
@@ -41,10 +47,18 @@ public class PedidoService {
         if (ciudad != null && !ciudad.isEmpty()) {
             cliente.setCiudad(ciudad);
         }
+        if (request.getTipoDocumento() != null && !request.getTipoDocumento().isEmpty()) {
+            cliente.setTipoDocumento(request.getTipoDocumento());
+        }
+        if (request.getNumeroDocumento() != null && !request.getNumeroDocumento().isEmpty()) {
+            cliente.setNumeroDocumento(request.getNumeroDocumento());
+        }
 
         if (cliente.getDireccion() == null || cliente.getDireccion().isEmpty() ||
-            cliente.getCiudad() == null || cliente.getCiudad().isEmpty()) {
-            throw new RuntimeException("Por favor, verifica que tu perfil de cliente esté completo (dirección y ciudad) antes de realizar el pedido.");
+            cliente.getCiudad() == null || cliente.getCiudad().isEmpty() ||
+            cliente.getTipoDocumento() == null || cliente.getTipoDocumento().isEmpty() ||
+            cliente.getNumeroDocumento() == null || cliente.getNumeroDocumento().isEmpty()) {
+            throw new RuntimeException("Por favor, verifica que tu perfil de cliente esté completo (dirección, ciudad y documento) antes de realizar el pedido.");
         }
 
         // 2. Validar Stock y preparar detalles
@@ -64,6 +78,7 @@ public class PedidoService {
                 .metodoPago(metodoPago)
                 .ciudadEnvio(ciudad != null ? ciudad : cliente.getCiudad())
                 .direccionEnvio(direccion != null ? direccion : cliente.getDireccion())
+                .observaciones(request.getObservaciones())
                 .build();
 
         // 4. Crear detalles, restar stock y registrar movimientos
@@ -113,6 +128,7 @@ public class PedidoService {
 
     public List<PedidoResponseDTO> obtenerTodos() {
         return pedidoRepository.findAll().stream()
+                .sorted((p1, p2) -> p2.getFechaPedido().compareTo(p1.getFechaPedido()))
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
@@ -148,12 +164,16 @@ public class PedidoService {
                 .id(pedido.getIdPedido())
                 .clienteId(pedido.getCliente().getIdCliente())
                 .nombreCliente(pedido.getCliente().getUsuario().getNombre())
+                .emailCliente(pedido.getCliente().getUsuario().getEmail())
                 .fechaPedido(pedido.getFechaPedido())
                 .total(pedido.getTotal())
                 .estado(pedido.getEstado())
                 .metodoPago(pedido.getMetodoPago())
                 .direccion(pedido.getDireccionEnvio())
                 .ciudad(pedido.getCiudadEnvio())
+                .tipoDocumento(pedido.getCliente().getTipoDocumento())
+                .numeroDocumento(pedido.getCliente().getNumeroDocumento())
+                .observaciones(pedido.getObservaciones())
                 .items(detallesDTO)
                 .build();
     }

@@ -36,10 +36,16 @@ public class ProductoService {
         private ProveedorRepository proveedorRepository;
         
         @Autowired
+        private UsuarioRepository usuarioRepository;
+
+        @Autowired
+        private ItemCarritoRepository itemCarritoRepository;
+
+        @Autowired
         private InventarioRepository inventarioRepository;
 
         @Autowired
-        private UsuarioRepository usuarioRepository;
+        private DetallePedidoRepository detallePedidoRepository;
 
         @Autowired
         private FileStorageService fileStorageService;
@@ -264,18 +270,19 @@ public class ProductoService {
         @Transactional
         public void eliminar(Integer id) {
                 Producto producto = productoRepository.findById(id)
-                                .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado"));
+                                .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado con el id: " + id));
 
-                Integer stockAnterior = producto.getStockActual();
-                producto.setEstado("INACTIVO");
-                producto.setStockActual(0); // Vaciamos stock al inactivar
-                
-                productoRepository.save(producto);
-                
-                // Registrar salida total de inventario si había stock
-                if (stockAnterior > 0) {
-                    registrarMovimiento(producto, "salida", stockAnterior, stockAnterior, 0, "Producto marcado como INACTIVO - Eliminación lógica");
-                }
+                // 1. Eliminar de carritos
+                itemCarritoRepository.deleteByProductoIdProducto(id);
+
+                // 2. Eliminar movimientos de inventario
+                inventarioRepository.deleteByProductoIdProducto(id);
+
+                // 3. Eliminar detalles de pedidos
+                detallePedidoRepository.deleteByProductoIdProducto(id);
+
+                // 4. Eliminar el producto físicamente
+                productoRepository.delete(producto);
         }
 
         private ProductoResponseDTO convertirAResponseDTO(Producto producto) {

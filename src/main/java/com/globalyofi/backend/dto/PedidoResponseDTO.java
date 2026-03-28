@@ -14,12 +14,18 @@ public class PedidoResponseDTO {
     private Integer id;
     private Integer clienteId;
     private String nombreCliente;
+    private String emailCliente;
+    
+    @JsonProperty("fecha")
     private LocalDateTime fechaPedido;
     private BigDecimal total;
     private String estado;
     private String metodoPago;
     private String direccion;
     private String ciudad;
+    private String tipoDocumento;
+    private String numeroDocumento;
+    private String observaciones;
     private List<DetallePedidoDTO> items;
 
     // Métodos para compatibilidad con el frontend anterior

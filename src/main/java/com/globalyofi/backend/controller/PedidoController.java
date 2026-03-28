@@ -4,6 +4,7 @@ import com.globalyofi.backend.dto.EstadoPedidoRequestDTO;
 import com.globalyofi.backend.dto.PedidoRequestDTO;
 import com.globalyofi.backend.dto.PedidoResponseDTO;
 import com.globalyofi.backend.service.PedidoService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -20,13 +21,8 @@ public class PedidoController {
 
     @PostMapping("/realizar")
     @PreAuthorize("isAuthenticated()")
-    public PedidoResponseDTO realizarPedido(@RequestBody PedidoRequestDTO request) {
-        return pedidoService.realizarPedido(
-                request.getClienteId(),
-                request.getMetodoPago(),
-                request.getDireccion(),
-                request.getCiudad()
-        );
+    public PedidoResponseDTO realizarPedido(@Valid @RequestBody PedidoRequestDTO request) {
+        return pedidoService.realizarPedido(request);
     }
 
     @GetMapping

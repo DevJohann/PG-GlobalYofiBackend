@@ -44,6 +44,9 @@ public class Pedido {
     @Column(name = "direccion_envio", columnDefinition = "TEXT")
     private String direccionEnvio;
 
+    @Column(columnDefinition = "TEXT")
+    private String observaciones;
+
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<DetallePedido> detalles = new ArrayList<>();

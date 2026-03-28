@@ -35,4 +35,8 @@ public class DetallePedido {
 
     @Column(precision = 10, scale = 2)
     private BigDecimal subtotal;
+
+    @Builder.Default
+    @Column(precision = 10, scale = 2)
+    private BigDecimal descuento = BigDecimal.ZERO;
 }
