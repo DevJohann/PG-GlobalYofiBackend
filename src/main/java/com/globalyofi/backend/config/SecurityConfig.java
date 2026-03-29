@@ -64,7 +64,17 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/pedidos/mis-pedidos").authenticated()
                         // 2. Solo ADMIN puede ver lista completa y detalles técnicos
                         .requestMatchers(HttpMethod.GET, "/api/pedidos/**").hasRole("ADMIN")
-                        
+
+                        // REGLAS PARA PAGOS
+                        .requestMatchers(HttpMethod.GET, "/api/pagos/config").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/pagos/config").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/pagos/config/qr").hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.POST, "/api/pagos/*/iniciar").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/pagos/*/comprobante").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/pagos/*").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/pagos/*/validar").hasRole("ADMIN")
+
                         // El resto de rutas requieren autenticación
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -79,7 +89,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("http://localhost:4200", "http://127.0.0.1:4200"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(true);

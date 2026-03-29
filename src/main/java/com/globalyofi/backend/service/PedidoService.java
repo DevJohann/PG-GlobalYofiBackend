@@ -25,10 +25,16 @@ public class PedidoService {
     public static final String ESTADO_EN_REPARTO = "En reparto";
     public static final String ESTADO_ENTREGADO = "Entregado";
 
+    // Constantes para estados de pago
+    public static final String ESTADO_PENDIENTE_PAGO = "Pendiente de Pago";
+    public static final String ESTADO_PENDIENTE_VERIFICACION = "Pendiente Verificación Pago";
+    public static final String ESTADO_PAGADO = "Pagado";
+
     private final PedidoRepository pedidoRepository;
     private final CarritoRepository carritoRepository;
     private final ProductoRepository productoRepository;
     private final InventarioRepository inventarioRepository;
+    private final PagoRepository pagoRepository;
 
     @Transactional
     public PedidoResponseDTO realizarPedido(PedidoRequestDTO request) {
@@ -81,7 +87,7 @@ public class PedidoService {
                 .cliente(cliente)
                 .fechaPedido(LocalDateTime.now())
                 .total(carrito.getTotalEstimado())
-                .estado(ESTADO_PENDIENTE)
+                .estado(ESTADO_PENDIENTE_PAGO)
                 .metodoPago(metodoPago)
                 .ciudadEnvio(ciudad != null ? ciudad : cliente.getCiudad())
                 .direccionEnvio(direccion != null ? direccion : cliente.getDireccion())
@@ -124,6 +130,15 @@ public class PedidoService {
 
         // 5. Guardar pedido
         Pedido pedidoGuardado = pedidoRepository.save(pedido);
+
+        // 5a. Crear registro de Pago automáticamente
+        Pago pago = Pago.builder()
+                .pedido(pedidoGuardado)
+                .metodo(metodoPago)
+                .estado("PENDIENTE")
+                .referencia("PEDIDO-" + pedidoGuardado.getIdPedido())
+                .build();
+        pagoRepository.save(pago);
 
         // 6. Vaciar carrito
         carrito.getItems().clear();
