@@ -31,4 +31,16 @@ public interface ProductoRepository extends JpaRepository<Producto, Integer> {
             @Param("search") String search,
             @Param("estado") String estado,
             Pageable pageable);
+
+    // Consulta específica para el Chatbot
+    @Query("SELECT p FROM Producto p WHERE " +
+            "(:tipoProducto IS NULL OR LOWER(p.nombre) LIKE LOWER(CONCAT('%', :tipoProducto, '%')) OR LOWER(p.descripcion) LIKE LOWER(CONCAT('%', :tipoProducto, '%')) OR LOWER(p.categoria.nombre) LIKE LOWER(CONCAT('%', :tipoProducto, '%'))) AND " +
+            "(:tipoPiel IS NULL OR LOWER(p.descripcion) LIKE LOWER(CONCAT('%', :tipoPiel, '%'))) AND " +
+            "(:maxPrecio IS NULL OR p.precio <= :maxPrecio) AND " +
+            "p.estado = 'ACTIVO'")
+    List<Producto> buscarParaChatbot(
+            @Param("tipoProducto") String tipoProducto,
+            @Param("tipoPiel") String tipoPiel,
+            @Param("maxPrecio") BigDecimal maxPrecio,
+            Pageable pageable);
 }
