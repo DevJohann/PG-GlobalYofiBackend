@@ -40,7 +40,9 @@ public class SecurityConfig {
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring()
                 .requestMatchers("/api/auth/**")
-                .requestMatchers("/uploads/**");
+                .requestMatchers("/api/chatbot/**")
+                .requestMatchers("/uploads/**")
+                .requestMatchers("/error");
     }
 
     /**
@@ -56,7 +58,7 @@ public class SecurityConfig {
                         // Permitir todas las peticiones OPTIONS pre-flight
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Rutas públicas redundantes (ya están en ignoring(), pero por seguridad)
-                        .requestMatchers("/api/auth/**", "/api/productos/**", "/api/categorias/**", "/api/proveedores/**", "/uploads/**", "/api/chatbot/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/api/productos/**", "/api/categorias/**", "/api/proveedores/**", "/uploads/**", "/api/chatbot/**", "/error").permitAll()
                         
                         // REGLAS PARA PEDIDOS
                         // 1. Cualquier usuario autenticado puede realizar pedidos y ver sus propios pedidos
