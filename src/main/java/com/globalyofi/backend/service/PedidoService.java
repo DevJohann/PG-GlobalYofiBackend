@@ -29,6 +29,7 @@ public class PedidoService {
     public static final String ESTADO_PENDIENTE_PAGO = "Pendiente de Pago";
     public static final String ESTADO_PENDIENTE_VERIFICACION = "Pendiente Verificación Pago";
     public static final String ESTADO_PAGADO = "Pagado";
+    public static final String ESTADO_CANCELADO = "Cancelado";
 
     private final PedidoRepository pedidoRepository;
     private final CarritoRepository carritoRepository;
@@ -167,10 +168,45 @@ public class PedidoService {
         return mapToDTO(pedido);
     }
 
+    public boolean esDuenioDelPedido(Integer idPedido, String email) {
+        return pedidoRepository.findById(idPedido)
+                .map(p -> p.getCliente().getUsuario().getEmail().equals(email))
+                .orElse(false);
+    }
+
     @Transactional
     public PedidoResponseDTO actualizarEstado(Integer id, String nuevoEstado) {
         Pedido pedido = pedidoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido no encontrado con ID: " + id));
+
+        String estadoAnterior = pedido.getEstado();
+        
+        // Si el pedido se cancela, restaurar stock
+        if (ESTADO_CANCELADO.equalsIgnoreCase(nuevoEstado) && !ESTADO_CANCELADO.equalsIgnoreCase(estadoAnterior)) {
+            for (DetallePedido detalle : pedido.getDetalles()) {
+                Producto producto = detalle.getProducto();
+                int stockAnterior = producto.getStockActual();
+                int stockNuevo = stockAnterior + detalle.getCantidad();
+                
+                // Restaurar stock
+                producto.setStockActual(stockNuevo);
+                productoRepository.save(producto);
+
+                // Registrar movimiento en Inventario (Entrada por cancelación)
+                Inventario movimiento = Inventario.builder()
+                        .producto(producto)
+                        .usuario(pedido.getCliente().getUsuario())
+                        .tipoMovimiento("entrada")
+                        .cantidad(detalle.getCantidad())
+                        .stockAnterior(stockAnterior)
+                        .stockNuevo(stockNuevo)
+                        .fechaMovimiento(LocalDateTime.now())
+                        .observaciones("Cancelación de Pedido #" + pedido.getIdPedido())
+                        .build();
+                inventarioRepository.save(movimiento);
+            }
+        }
+
         pedido.setEstado(nuevoEstado);
         Pedido pedidoGuardado = pedidoRepository.save(pedido);
         return mapToDTO(pedidoGuardado);

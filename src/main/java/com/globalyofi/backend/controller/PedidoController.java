@@ -46,7 +46,7 @@ public class PedidoController {
     }
 
     @PutMapping("/{id}/estado")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or (isAuthenticated() and #request.estado == 'Cancelado' and @pedidoService.esDuenioDelPedido(#id, authentication.name))")
     public PedidoResponseDTO actualizarEstado(@PathVariable("id") Integer id, @RequestBody EstadoPedidoRequestDTO request) {
         return pedidoService.actualizarEstado(id, request.getEstado());
     }
