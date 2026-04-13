@@ -39,6 +39,12 @@ public class Producto {
     @Column(name = "imagen_url")
     private String imagenUrl;
 
+    @Column(name = "tipo_piel")
+    private String tipoPiel;
+
+    private String acabado;
+    private String tono;
+
     // Relaciones
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "categoria_id")

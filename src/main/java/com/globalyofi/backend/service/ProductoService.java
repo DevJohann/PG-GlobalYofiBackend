@@ -271,18 +271,10 @@ public class ProductoService {
         public void eliminar(Integer id) {
                 Producto producto = productoRepository.findById(id)
                                 .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado con el id: " + id));
-
-                // 1. Eliminar de carritos
-                itemCarritoRepository.deleteByProductoIdProducto(id);
-
-                // 2. Eliminar movimientos de inventario
-                inventarioRepository.deleteByProductoIdProducto(id);
-
-                // 3. Eliminar detalles de pedidos
-                detallePedidoRepository.deleteByProductoIdProducto(id);
-
-                // 4. Eliminar el producto físicamente
-                productoRepository.delete(producto);
+                // Eliminación LÓGICA: marcar como INACTIVO
+                // El producto permanece en BD para conservar historial de pedidos e inventario
+                producto.setEstado("INACTIVO");
+                productoRepository.save(producto);
         }
 
         private ProductoResponseDTO convertirAResponseDTO(Producto producto) {

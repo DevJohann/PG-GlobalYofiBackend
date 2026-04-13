@@ -20,22 +20,23 @@ public class ProductoController {
     @Autowired
     private ProductoService productoService;
 
-    // Endpoint general (filtros combinados profesionales)
+    // Endpoint público: solo activos
     @GetMapping
     public List<ProductoResponseDTO> listarProductos(
             @RequestParam(value = "categoriaIds", required = false) List<Integer> categoriaIds,
             @RequestParam(value = "minPrecio", required = false) BigDecimal minPrecio,
             @RequestParam(value = "maxPrecio", required = false) BigDecimal maxPrecio,
             @RequestParam(value = "search", required = false) String search,
-            @RequestParam(value = "sortBy", required = false) String sortBy,
-            @RequestParam(value = "estado", required = false) String estado) {
+            @RequestParam(value = "sortBy", required = false) String sortBy) {
         
-        // Si no hay filtros específicos, devolvemos todos (incluyendo inactivos para admin si el service lo permite)
-        if (categoriaIds == null && minPrecio == null && maxPrecio == null && search == null && estado == null) {
-            return productoService.obtenerTodos();
-        }
+        return productoService.filtrar(categoriaIds, minPrecio, maxPrecio, search, sortBy, "ACTIVO");
+    }
 
-        return productoService.filtrar(categoriaIds, minPrecio, maxPrecio, search, sortBy, estado);
+    // Endpoint ADMIN: todos los productos (incluyendo inactivos)
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin")
+    public List<ProductoResponseDTO> listarProductosAdmin() {
+        return productoService.obtenerTodos();
     }
 
     @GetMapping("/{id}")

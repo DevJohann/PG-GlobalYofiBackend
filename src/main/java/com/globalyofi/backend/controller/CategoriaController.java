@@ -18,10 +18,17 @@ public class CategoriaController {
     @Autowired
     private CategoriaService categoriaService;
 
-    // Público: listar categorías
+    // Público: listar categorías activas
     @GetMapping
     public List<CategoriaResponseDTO> listar() {
         return categoriaService.obtenerTodas();
+    }
+
+    // ADMIN: listar TODAS las categorías (activas e inactivas)
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin")
+    public List<CategoriaResponseDTO> listarAdmin() {
+        return categoriaService.obtenerTodasAdmin();
     }
 
     // Solo ADMIN puede crear categorías

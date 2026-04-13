@@ -36,6 +36,7 @@ public class DialogflowResponseDTO {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class Message {
         private TextMessage text;
+        private Map<String, Object> payload;
     }
 
     @Data

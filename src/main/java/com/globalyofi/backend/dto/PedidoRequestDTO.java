@@ -29,4 +29,6 @@ public class PedidoRequestDTO {
     private String numeroDocumento;
     
     private String observaciones;
+
+    private String telefonoPago;
 }

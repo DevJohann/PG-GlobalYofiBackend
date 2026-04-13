@@ -73,10 +73,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/pagos/config/qr").hasRole("ADMIN")
 
                         .requestMatchers(HttpMethod.POST, "/api/pagos/*/iniciar").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/pagos/*/comprobante").authenticated()
+                         .requestMatchers(HttpMethod.POST, "/api/pagos/*/comprobante").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/pagos/*").authenticated()
                         .requestMatchers(HttpMethod.PATCH, "/api/pagos/*/validar").hasRole("ADMIN")
 
+                        // REGLAS PARA USUARIOS
+                        .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
                         // El resto de rutas requieren autenticación
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

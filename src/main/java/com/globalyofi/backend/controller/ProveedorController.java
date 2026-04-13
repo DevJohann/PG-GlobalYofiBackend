@@ -18,10 +18,17 @@ public class ProveedorController {
     @Autowired
     private ProveedorService proveedorService;
 
-    // Público: listar proveedores (puede ser visible en catálogos, etc.)
+    // Público: listar proveedores activos
     @GetMapping
     public List<ProveedorResponseDTO> listar() {
         return proveedorService.obtenerTodos();
+    }
+
+    // ADMIN: listar TODOS los proveedores (activos e inactivos)
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin")
+    public List<ProveedorResponseDTO> listarAdmin() {
+        return proveedorService.obtenerTodosAdmin();
     }
 
     // Solo ADMIN puede crear proveedores

@@ -16,8 +16,16 @@ public class ClienteService {
     private final ClienteRepository clienteRepository;
     private final com.globalyofi.backend.repository.UsuarioRepository usuarioRepository;
 
+    /** Lista todos los clientes — para uso del ADMIN (incluye inactivos) */
     public List<Cliente> listarTodos() {
         return clienteRepository.findAll();
+    }
+
+    /** Lista solo clientes activos — para uso del frontend público */
+    public List<Cliente> listarActivos() {
+        return clienteRepository.findAll().stream()
+                .filter(c -> c.getUsuario() != null && c.getUsuario().isActivo())
+                .toList();
     }
 
     public Cliente obtenerPorId(Integer id) {
@@ -56,17 +64,18 @@ public class ClienteService {
         return clienteRepository.save(cliente);
     }
 
+    /**
+     * Eliminación LÓGICA: desactiva el usuario asociado al cliente.
+     * El cliente sigue existiendo en BD para conservar el historial de pedidos.
+     */
     @Transactional
     public void eliminar(Integer id) {
         Cliente cliente = obtenerPorId(id);
         Usuario usuario = cliente.getUsuario();
-        
+
         if (usuario != null) {
-            // Un usuario puede tener varios movimientos en el inventario o reportes
-            // pero para un CLIENTE usualmente no hay estos registros o queremos borrarlos
-            usuarioRepository.delete(usuario);
-        } else {
-            clienteRepository.delete(cliente);
+            usuario.setActivo(false);
+            usuarioRepository.save(usuario);
         }
     }
 }

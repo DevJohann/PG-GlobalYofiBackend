@@ -11,8 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,12 +35,10 @@ public class ChatbotService {
 
         String tipoProducto = getParameterAsString(params, "tipo_producto");
         String tipoPiel = getParameterAsString(params, "tipo_piel");
-        BigDecimal presupuesto = getParameterAsBigDecimal(params, "presupuesto");
 
         List<Producto> productos = productoRepository.buscarParaChatbot(
                 tipoProducto,
                 tipoPiel,
-                presupuesto,
                 PageRequest.of(0, 3));
 
         if (productos.isEmpty()) {
@@ -81,7 +79,6 @@ public class ChatbotService {
 
         List<Producto> productos = productoRepository.buscarParaChatbot(
                 nombreProducto,
-                null,
                 null,
                 PageRequest.of(0, 1));
 
@@ -129,12 +126,74 @@ public class ChatbotService {
                 String.format("Tu pedido está en estado: %s", pedido.getEstado()));
     }
 
+    public DialogflowResponseDTO buscarMaquillaje(DialogflowRequestDTO request) {
+        Map<String, Object> params = request.getSessionInfo() != null ? request.getSessionInfo().getParameters()
+                : new HashMap<>();
+
+        String categoria = getParameterAsString(params, "categoria");
+        String marca = getParameterAsString(params, "marca");
+        String tipoPiel = getParameterAsString(params, "tipo_piel");
+
+        if (categoria == null || categoria.isBlank()) {
+            return DialogflowResponseDTO.createSimpleResponse(
+                    "Por favor dime qué categoría de producto estás buscando (por ejemplo: Labios, Rostro, Ojos).");
+        }
+
+        List<Producto> productos = productoRepository.buscarPorCategoriaMarcaTipoPiel(
+                categoria, marca, tipoPiel, PageRequest.of(0, 5));
+
+        if (productos.isEmpty()) {
+            return DialogflowResponseDTO.createSimpleResponse(
+                    "Lo siento, no encontré productos de maquillaje con esas características en este momento.");
+        }
+
+        return createRichContentResponse(productos, "¡Aquí tienes algunas opciones geniales!");
+    }
+
     public DialogflowResponseDTO manejarIntentDesconocido() {
         return DialogflowResponseDTO.createSimpleResponse(
                 "Lo siento, no pude entender tu solicitud. Por favor intenta preguntarme sobre productos, recomendaciones o el estado de tu pedido.");
     }
 
-    // --- Helpers para parámetros de Dialogflow ---
+    // --- Helpers para parámetros y Rich Content ---
+
+    private DialogflowResponseDTO createRichContentResponse(List<Producto> productos, String textMessage) {
+        Map<String, Object> payload = new HashMap<>();
+        List<List<Map<String, Object>>> richContent = new ArrayList<>();
+        List<Map<String, Object>> cards = new ArrayList<>();
+
+        for (Producto p : productos) {
+            Map<String, Object> card = new HashMap<>();
+            card.put("type", "info");
+            card.put("title", p.getNombre());
+            card.put("subtitle", "$" + p.getPrecio() + " - " + (p.getDescripcion() != null ? p.getDescripcion() : "Sin descripción"));
+            
+            if (p.getImagenUrl() != null && !p.getImagenUrl().isBlank()) {
+                Map<String, Object> imageNode = new HashMap<>();
+                Map<String, Object> srcNode = new HashMap<>();
+                srcNode.put("rawUrl", p.getImagenUrl());
+                imageNode.put("src", srcNode);
+                card.put("image", imageNode);
+            }
+            
+            card.put("actionLink", "http://localhost:4200/productos/" + p.getIdProducto());
+            cards.add(card);
+        }
+
+        richContent.add(cards);
+        payload.put("richContent", richContent);
+
+        return DialogflowResponseDTO.builder()
+                .fulfillment_response(DialogflowResponseDTO.FulfillmentResponse.builder()
+                        .messages(Collections.singletonList(DialogflowResponseDTO.Message.builder()
+                                .text(DialogflowResponseDTO.TextMessage.builder()
+                                        .text(Collections.singletonList(textMessage))
+                                        .build())
+                                .payload(payload)
+                                .build()))
+                        .build())
+                .build();
+    }
 
     private String getParameterAsString(Map<String, Object> params, String key) {
         if (!params.containsKey(key) || params.get(key) == null) {
@@ -142,16 +201,5 @@ public class ChatbotService {
         }
         String value = params.get(key).toString();
         return value.isBlank() ? null : value;
-    }
-
-    private BigDecimal getParameterAsBigDecimal(Map<String, Object> params, String key) {
-        if (!params.containsKey(key) || params.get(key) == null) {
-            return null;
-        }
-        try {
-            return new BigDecimal(params.get(key).toString());
-        } catch (NumberFormatException e) {
-            return null;
-        }
     }
 }

@@ -18,9 +18,17 @@ public class ProveedorService {
     @Autowired
     private ProveedorRepository proveedorRepository;
 
+    /** Lista solo proveedores activos — para el frontend general */
     public List<ProveedorResponseDTO> obtenerTodos() {
-        return proveedorRepository.findAll()
-                .stream()
+        return proveedorRepository.findAll().stream()
+                .filter(Proveedor::isActivo)
+                .map(this::convertirAResponse)
+                .collect(Collectors.toList());
+    }
+
+    /** Lista TODOS los proveedores — solo para ADMIN */
+    public List<ProveedorResponseDTO> obtenerTodosAdmin() {
+        return proveedorRepository.findAll().stream()
                 .map(this::convertirAResponse)
                 .collect(Collectors.toList());
     }
@@ -39,6 +47,7 @@ public class ProveedorService {
                 .ciudad(dto.getCiudad())
                 .nit(dto.getNit())
                 .estado(dto.getEstado())
+                .activo(true)
                 .fechaRegistro(LocalDateTime.now())
                 .build();
 
@@ -63,10 +72,15 @@ public class ProveedorService {
         return convertirAResponse(proveedor);
     }
 
+    /**
+     * Eliminación LÓGICA: marca el proveedor como inactivo.
+     * Los datos del proveedor se conservan para el historial de productos.
+     */
     public void eliminar(Integer id) {
         Proveedor proveedor = proveedorRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Proveedor no encontrado"));
-        proveedorRepository.delete(proveedor);
+        proveedor.setActivo(false);
+        proveedorRepository.save(proveedor);
     }
 
     private ProveedorResponseDTO convertirAResponse(Proveedor proveedor) {

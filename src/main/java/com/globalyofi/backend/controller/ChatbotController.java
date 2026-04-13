@@ -46,6 +46,9 @@ public class ChatbotController {
                 case "estado_pedido":
                     response = chatbotService.consultarPedido(request);
                     break;
+                case "buscar_maquillaje":
+                    response = chatbotService.buscarMaquillaje(request);
+                    break;
                 default:
                     response = chatbotService.manejarIntentDesconocido();
                     break;

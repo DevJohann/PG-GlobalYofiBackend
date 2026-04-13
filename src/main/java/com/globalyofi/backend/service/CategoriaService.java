@@ -17,9 +17,17 @@ public class CategoriaService {
     @Autowired
     private CategoriaRepository categoriaRepository;
 
+    /** Lista solo categorías activas — para clientes en el frontend */
     public List<CategoriaResponseDTO> obtenerTodas() {
-        return categoriaRepository.findAll()
-                .stream()
+        return categoriaRepository.findAll().stream()
+                .filter(c -> Boolean.TRUE.equals(c.getActiva()))
+                .map(this::convertirAResponse)
+                .collect(Collectors.toList());
+    }
+
+    /** Lista TODAS las categorías (activas e inactivas) — solo para ADMIN */
+    public List<CategoriaResponseDTO> obtenerTodasAdmin() {
+        return categoriaRepository.findAll().stream()
                 .map(this::convertirAResponse)
                 .collect(Collectors.toList());
     }
@@ -32,7 +40,7 @@ public class CategoriaService {
         Categoria categoria = Categoria.builder()
                 .nombre(dto.getNombre())
                 .descripcion(dto.getDescripcion())
-                .activa(dto.getActiva())
+                .activa(dto.getActiva() != null ? dto.getActiva() : true)
                 .build();
 
         categoriaRepository.save(categoria);
@@ -45,16 +53,22 @@ public class CategoriaService {
 
         categoria.setNombre(dto.getNombre());
         categoria.setDescripcion(dto.getDescripcion());
-        categoria.setActiva(dto.getActiva());
+        if (dto.getActiva() != null) categoria.setActiva(dto.getActiva());
 
         categoriaRepository.save(categoria);
         return convertirAResponse(categoria);
     }
 
+    /**
+     * Eliminación LÓGICA: marca la categoría como inactiva.
+     * Los productos asociados dejan de filtrarse para clientes
+     * pero la categoría sigue existiendo en BD.
+     */
     public void eliminar(Integer id) {
         Categoria categoria = categoriaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada"));
-        categoriaRepository.delete(categoria);
+        categoria.setActiva(false);
+        categoriaRepository.save(categoria);
     }
 
     private CategoriaResponseDTO convertirAResponse(Categoria categoria) {

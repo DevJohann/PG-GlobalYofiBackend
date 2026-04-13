@@ -26,6 +26,7 @@ public class PedidoResponseDTO {
     private String tipoDocumento;
     private String numeroDocumento;
     private String observaciones;
+    private String telefonoPago;
     private List<DetallePedidoDTO> items;
 
     // Métodos para compatibilidad con el frontend anterior

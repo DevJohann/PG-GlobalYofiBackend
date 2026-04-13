@@ -25,6 +25,7 @@ public class Proveedor {
     private String ciudad;
     private String nit;
     private String estado;
+    private boolean activo = true;
 
     @Column(name = "fecha_registro")
     private LocalDateTime fechaRegistro;

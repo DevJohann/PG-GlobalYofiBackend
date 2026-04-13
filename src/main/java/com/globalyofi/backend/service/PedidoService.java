@@ -36,6 +36,7 @@ public class PedidoService {
     private final ProductoRepository productoRepository;
     private final InventarioRepository inventarioRepository;
     private final PagoRepository pagoRepository;
+    private final PagoConfigRepository pagoConfigRepository;
 
     @Transactional
     public PedidoResponseDTO realizarPedido(PedidoRequestDTO request) {
@@ -83,16 +84,32 @@ public class PedidoService {
             }
         }
 
+        // 2b. Calcular costo de envío
+        BigDecimal costoEnvio = BigDecimal.ZERO;
+        if (!"RECOGER_TIENDA".equals(metodoPago) && ! "RECOGER_TIENDA".equals(direccion)) {
+            PagoConfig config = pagoConfigRepository.findById(1L).orElse(null);
+            if (config != null) {
+                BigDecimal subtotal = carrito.getTotalEstimado();
+                BigDecimal umbralGratis = config.getPrecioEnvioGratis() != null ? config.getPrecioEnvioGratis() : BigDecimal.valueOf(150000);
+                if (subtotal.compareTo(umbralGratis) < 0) {
+                    costoEnvio = config.getPrecioEnvio() != null ? config.getPrecioEnvio() : BigDecimal.valueOf(15000);
+                }
+            }
+        }
+        
+        BigDecimal totalFInal = carrito.getTotalEstimado().add(costoEnvio);
+
         // 3. Crear el Pedido
         Pedido pedido = Pedido.builder()
                 .cliente(cliente)
                 .fechaPedido(LocalDateTime.now())
-                .total(carrito.getTotalEstimado())
+                .total(totalFInal)
                 .estado(ESTADO_PENDIENTE_PAGO)
                 .metodoPago(metodoPago)
                 .ciudadEnvio(ciudad != null ? ciudad : cliente.getCiudad())
                 .direccionEnvio(direccion != null ? direccion : cliente.getDireccion())
                 .observaciones(request.getObservaciones())
+                .telefonoPago(request.getTelefonoPago())
                 .build();
 
         // 4. Crear detalles, restar stock y registrar movimientos
@@ -238,6 +255,7 @@ public class PedidoService {
                 .tipoDocumento(pedido.getCliente().getTipoDocumento())
                 .numeroDocumento(pedido.getCliente().getNumeroDocumento())
                 .observaciones(pedido.getObservaciones())
+                .telefonoPago(pedido.getTelefonoPago())
                 .items(detallesDTO)
                 .build();
     }
