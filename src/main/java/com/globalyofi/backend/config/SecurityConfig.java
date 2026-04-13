@@ -57,8 +57,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Permitir todas las peticiones OPTIONS pre-flight
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // Rutas públicas redundantes (ya están en ignoring(), pero por seguridad)
-                        .requestMatchers("/api/auth/**", "/api/productos/**", "/api/categorias/**", "/api/proveedores/**", "/uploads/**", "/api/chatbot/**", "/error").permitAll()
+                        // Rutas públicas: GET restringido a solo ver la lista base
+                        .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/categorias", "/api/proveedores/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/uploads/**", "/api/chatbot/**", "/error").permitAll()
                         
                         // REGLAS PARA PEDIDOS
                         // 1. Cualquier usuario autenticado puede realizar pedidos y ver sus propios pedidos

@@ -46,6 +46,13 @@ public class CategoriaController {
         return categoriaService.actualizar(id, dto);
     }
 
+    // ADMIN: activar o desactivar categoría
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/{id}/toggle")
+    public CategoriaResponseDTO toggleStatus(@PathVariable("id") Integer id) {
+        return categoriaService.toggleEstado(id);
+    }
+
     // Solo ADMIN puede eliminar
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")

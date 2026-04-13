@@ -60,9 +60,20 @@ public class CategoriaService {
     }
 
     /**
+     * Alterna el estado (activar/desactivar) de una categoría.
+     * Los productos de categorías inactivas no se muestran a clientes.
+     */
+    public CategoriaResponseDTO toggleEstado(Integer id) {
+        Categoria categoria = categoriaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada"));
+        
+        categoria.setActiva(!Boolean.TRUE.equals(categoria.getActiva()));
+        categoriaRepository.save(categoria);
+        return convertirAResponse(categoria);
+    }
+
+    /**
      * Eliminación LÓGICA: marca la categoría como inactiva.
-     * Los productos asociados dejan de filtrarse para clientes
-     * pero la categoría sigue existiendo en BD.
      */
     public void eliminar(Integer id) {
         Categoria categoria = categoriaRepository.findById(id)
