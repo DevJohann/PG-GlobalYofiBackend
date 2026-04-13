@@ -14,14 +14,13 @@ Incluye autenticación segura mediante **JSON Web Tokens (JWT)** y soporte para 
 
 ##  Características Principales
 
--  CRUD completo de **Productos**, **Proveedores**, y **Categorías**.
--  Sistema de **autenticación y registro con JWT** (sin Basic Auth).
--  Gestión de **usuarios y roles** (`ADMIN`, `CLIENTE`).
--  Generación de **reportes de productos e inventarios**.
--  **Borrado lógico** de productos (`estado` en vez de eliminación física).
--  Endpoints públicos y protegidos por rol.
--  Configuración de seguridad moderna con **Spring Security 6**.
--  Desarrollado bajo principios **RESTful** y **Clean Architecture**.
+-  **Gestión de Catálogo**: CRUD completo de Productos, Proveedores y Categorías.
+-  **Seguridad**: Sistema de autenticación y registro basado en JWT (Stateless).
+-  **Control de Acceso**: Gestión de usuarios con roles diferenciados (`ROLE_ADMIN`, `ROLE_CLIENTE`).
+-  **Inventario**: Registro de movimientos de entrada y salida de stock.
+-  **Ventas**: Gestión de pedidos, carritos de compras y validación de pagos.
+-  **Reportes**: Generación de reportes técnicos de productos e inventarios.
+-  **Arquitectura**: Desarrollado bajo principios RESTful y Clean Architecture.
 
 ---
 
@@ -31,73 +30,105 @@ Incluye autenticación segura mediante **JSON Web Tokens (JWT)** y soporte para 
 |------|---------------------------|
 | Lenguaje | Java 17 |
 | Framework principal | Spring Boot 3.5.6 |
-| Seguridad | Spring Security + JWT |
+| Seguridad | Spring Security 6 + JWT |
 | Persistencia | Spring Data JPA / Hibernate |
-| Base de datos | MySQL |
-| Dependencias clave | Lombok, Validation API, DevTools |
-| API Docs (opcional futuro) | Swagger / OpenAPI |
-| Build Tool | Maven |
+| Base de datos | MySQL 8 |
+| Construcción | Maven |
 
 ---
 
 ##  Requisitos Previos
 
-Antes de ejecutar el proyecto asegúrate de tener instalado:
+Antes de ejecutar el proyecto, asegúrate de tener instalado:
 
--  **Java 17 o superior**
+-  **Java 17** (JDK)
 -  **Maven 3.8+**
--  **MySQL Server** (o una base de datos compatible)
--  Un IDE como **IntelliJ IDEA**, **VS Code**, o **Eclipse**
+-  **MySQL Server 8.0+**
+-  Un IDE (IntelliJ IDEA, VS Code con Java Extension Pack)
 
 ---
 
-##  Configuración del Proyecto
+##  Guía de Inicio y Configuración
 
-### 1. Clonar el repositorio
-```bash
-git clone https://github.com/tu-usuario/global-yofi-backend.git
-cd global-yofi-backend
+### 1. Preparar la Base de Datos
+
+Se ha proporcionado un script completo para la creación de la estructura necesaria.
+
+1.  Abre tu cliente de MySQL (Workbench, Terminal, etc.).
+2.  Ejecuta el script ubicado en: `.Scripts/schema_completo.sql`.
+    -  Este script creará la base de datos `global_yofi` y todas las tablas necesarias.
+    -  También inicializará la configuración de pagos y el usuario administrador.
+
+### 2. Configurar Propiedades
+Edita el archivo `src/main/resources/application.properties` con tus credenciales locales:
+
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/global_yofi?useSSL=false&serverTimezone=America/Bogota
+spring.datasource.username=tu_usuario
+spring.datasource.password=tu_contrasena
 ```
-### 2. Configurar la base de datos
-```bash
-spring.datasource.url=jdbc:mysql://localhost:3306/global_yofi_db?useSSL=false&serverTimezone=UTC
-spring.datasource.username=root
-spring.datasource.password=tu_password
 
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
+### 3. Ejecutar la Aplicación
+Desde la raíz del proyecto, utiliza Maven para compilar y ejecutar:
+
+```bash
+mvn clean install
+mvn spring-boot:run
 ```
-Los scripts de la base de datos los encontrara en /.Scripts
-Ejecutalos en tu motor de BD.
 
-El backend estará disponible en:
-http://localhost:8080
+El backend estará disponible en: `http://localhost:8080`
 
-### Estructura del Proyecto
-```bash
+---
+
+##  Credenciales de Administrador (Inicial)
+
+Para la entrega y pruebas iniciales, se ha precargado un usuario con privilegios de administrador:
+
+-  **Usuario:** `admin@globalyofi.com`
+-  **Contraseña:** `Admin123.,`
+
+> [!IMPORTANT]
+> Se recomienda cambiar esta contraseña después del primer inicio de sesión mediante los endpoints de gestión de usuarios por motivos de seguridad.
+
+---
+
+##  Resumen de Endpoints Principales
+
+### Autenticación (`/api/auth`)
+- `POST /api/auth/login`: Iniciar sesión y obtener token JWT.
+- `POST /api/auth/register`: Registro de nuevos clientes.
+
+### Productos (`/api/productos`)
+- `GET /api/productos`: Listar todos los productos (público).
+- `POST /api/productos`: Crear nuevo producto (solo ADMIN).
+
+### Pedidos (`/api/pedidos`)
+- `POST /api/pedidos/realizar`: Crear un nuevo pedido (clientes autenticados).
+- `GET /api/pedidos/mis-pedidos`: Ver histórico personal.
+
+---
+
+##  Estructura del Proyecto
+
+```text
 src/
 ├── main/
 │   ├── java/com/globalyofi/backend/
-│   │   ├── config/               # Configuración de seguridad y beans
-│   │   ├── controller/           # Controladores REST
-│   │   ├── dto/                  # Objetos de transferencia (Request/Response)
-│   │   ├── entity/               # Entidades JPA
-│   │   ├── repository/           # Repositorios JPA
-│   │   ├── security/             # Filtros JWT, utilidades y servicio de autenticación
-│   │   └── service/              # Lógica de negocio
+│   │   ├── config/               # Configuración de Seguridad y Beans
+│   │   ├── controller/           # Controladores REST (Endpoints)
+│   │   ├── dto/                  # Objetos de Transferencia de Datos
+│   │   ├── entity/               # Entidades JPA (Modelos de BD)
+│   │   ├── repository/           # Interfaces de Acceso a Datos
+│   │   ├── security/             # Lógica de JWT y Filtros
+│   │   └── service/              # Lógica de Negocio
 │   └── resources/
 │       ├── application.properties
-│       └── schema.sql (opcional)
-└── test/
-    └── ... (tests unitarios y de integración esto a futuro)
+│       └── .Scripts/             # Scripts SQL de inicialización
+└── test/                         # Pruebas Unitarias e Integración
 ```
 
-### Autores
-Edison Mauricio Beltran
-[embeltrang@unbosque.edu.co]
-[https://www.linkedin.com/in/mauricio-beltr%C3%A1n-345bb92b4/]
+---
 
-Johann Toncon
-[jtoncon@unbosque.edu.co]
-[www.linkedin.com/in/johann-felipe]
+##  Autores
+- **Edison Mauricio Beltrán** - [embeltrang@unbosque.edu.co]
+- **Johann Toncon** - [jtoncon@unbosque.edu.co]
