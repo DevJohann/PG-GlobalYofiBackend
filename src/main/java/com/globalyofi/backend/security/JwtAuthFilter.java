@@ -38,6 +38,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
 
+        // Saltamos la validación para el chatbot ya que Dialogflow usa su propio formato de token (RS256)
+        // que no es compatible con nuestra configuración de HS256.
+        if (path.startsWith("/api/chatbot/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         if (authHeader.contains("null") || authHeader.length() < 15) {
             logger.warn("Potentially invalid token detected: " + authHeader + " - Path: " + path);
             filterChain.doFilter(request, response);

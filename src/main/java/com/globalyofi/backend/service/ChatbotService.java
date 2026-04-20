@@ -160,37 +160,58 @@ public class ChatbotService {
     private DialogflowResponseDTO createRichContentResponse(List<Producto> productos, String textMessage) {
         Map<String, Object> payload = new HashMap<>();
         List<List<Map<String, Object>>> richContent = new ArrayList<>();
-        List<Map<String, Object>> cards = new ArrayList<>();
 
         for (Producto p : productos) {
-            Map<String, Object> card = new HashMap<>();
-            card.put("type", "info");
-            card.put("title", p.getNombre());
-            card.put("subtitle", "$" + p.getPrecio() + " - " + (p.getDescripcion() != null ? p.getDescripcion() : "Sin descripción"));
+            List<Map<String, Object>> cardBundle = new ArrayList<>();
             
+            // Componente de información (Imagen + Título + Descripción)
+            Map<String, Object> infoCard = new HashMap<>();
+            infoCard.put("type", "info");
+            infoCard.put("title", p.getNombre());
+            infoCard.put("subtitle", String.format("$%.2f - %s", p.getPrecio(), 
+                    (p.getDescripcion() != null ? p.getDescripcion() : "Sin descripción")));
+
             if (p.getImagenUrl() != null && !p.getImagenUrl().isBlank()) {
                 Map<String, Object> imageNode = new HashMap<>();
                 Map<String, Object> srcNode = new HashMap<>();
+                // Nota: rawUrl debería ser una URL absoluta para que Dialogflow la cargue correctamente
                 srcNode.put("rawUrl", p.getImagenUrl());
                 imageNode.put("src", srcNode);
-                card.put("image", imageNode);
+                infoCard.put("image", imageNode);
             }
-            
-            card.put("actionLink", "http://localhost:4200/productos/" + p.getIdProducto());
-            cards.add(card);
+            cardBundle.add(infoCard);
+
+            // Componente de botón para ver el producto en la web
+            Map<String, Object> button = new HashMap<>();
+            button.put("type", "button");
+            button.put("text", "Ver producto");
+            button.put("icon", Map.of("type", "chevron_right", "color", "#FF9800"));
+            button.put("link", "http://localhost:4200/productos/" + p.getIdProducto());
+            cardBundle.add(button);
+
+            // Añadir el bundle como una "tarjeta" en el carrusel de richContent
+            richContent.add(cardBundle);
         }
 
-        richContent.add(cards);
         payload.put("richContent", richContent);
 
+        List<DialogflowResponseDTO.Message> messages = new ArrayList<>();
+        
+        // Mensaje de texto
+        messages.add(DialogflowResponseDTO.Message.builder()
+                .text(DialogflowResponseDTO.TextMessage.builder()
+                        .text(Collections.singletonList(textMessage))
+                        .build())
+                .build());
+
+        // Mensaje del payload (Rich Content)
+        messages.add(DialogflowResponseDTO.Message.builder()
+                .payload(payload)
+                .build());
+
         return DialogflowResponseDTO.builder()
-                .fulfillment_response(DialogflowResponseDTO.FulfillmentResponse.builder()
-                        .messages(Collections.singletonList(DialogflowResponseDTO.Message.builder()
-                                .text(DialogflowResponseDTO.TextMessage.builder()
-                                        .text(Collections.singletonList(textMessage))
-                                        .build())
-                                .payload(payload)
-                                .build()))
+                .fulfillmentResponse(DialogflowResponseDTO.FulfillmentResponse.builder()
+                        .messages(messages)
                         .build())
                 .build();
     }

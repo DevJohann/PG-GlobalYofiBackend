@@ -1,6 +1,8 @@
 package com.globalyofi.backend.dto.chatbot;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -17,7 +19,9 @@ import java.util.Map;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DialogflowResponseDTO {
 
-    private FulfillmentResponse fulfillment_response;
+    @JsonProperty("fulfillmentResponse")
+    private FulfillmentResponse fulfillmentResponse;
+
     private SessionInfo sessionInfo;
 
     @Data
@@ -60,7 +64,7 @@ public class DialogflowResponseDTO {
     // Constructor helper to create a simple text response
     public static DialogflowResponseDTO createSimpleResponse(String textMessage) {
         return DialogflowResponseDTO.builder()
-                .fulfillment_response(FulfillmentResponse.builder()
+                .fulfillmentResponse(FulfillmentResponse.builder()
                         .messages(Collections.singletonList(Message.builder()
                                 .text(TextMessage.builder()
                                         .text(Collections.singletonList(textMessage))

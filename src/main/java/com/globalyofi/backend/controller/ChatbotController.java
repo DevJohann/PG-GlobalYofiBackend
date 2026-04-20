@@ -23,13 +23,14 @@ public class ChatbotController {
     }
 
     @PostMapping("/webhook")
-    public ResponseEntity<DialogflowResponseDTO> handleWebhook(@RequestBody DialogflowRequestDTO request) {
+    public ResponseEntity<Object> handleWebhook(@RequestBody DialogflowRequestDTO request) {
         try {
             logger.debug("Recibiendo webhook de Dialogflow. Request: {}", request);
-            
+
             if (request.getFulfillmentInfo() == null || request.getFulfillmentInfo().getTag() == null) {
-                logger.warn("Request de Dialogflow sin tag de cumplimiento.");
-                return ResponseEntity.ok(chatbotService.manejarIntentDesconocido());
+                logger.warn("Request de Dialogflow sin tag de cumplimiento. Path: {}", request.getSessionInfo());
+                DialogflowResponseDTO defaultResponse = chatbotService.manejarIntentDesconocido();
+                return ResponseEntity.ok(defaultResponse);
             }
 
             String tag = request.getFulfillmentInfo().getTag();
@@ -37,9 +38,9 @@ public class ChatbotController {
             DialogflowResponseDTO response;
 
             switch (tag) {
-                case "recomendar_productos":
-                    response = chatbotService.getRecomendaciones(request);
-                    break;
+                // case "recomendar_productos":
+                // response = chatbotService.getRecomendaciones(request);
+                // break;
                 case "consultar_producto":
                     response = chatbotService.consultarProducto(request);
                     break;
@@ -54,8 +55,9 @@ public class ChatbotController {
                     break;
             }
 
+            logger.info("Enviando respuesta a Dialogflow: {}", response);
             return ResponseEntity.ok(response);
-            
+
         } catch (Exception e) {
             return ResponseEntity.ok(DialogflowResponseDTO.createSimpleResponse(
                     "Ocurrió un error inesperado al procesar tu solicitud: " + e.getMessage()));
