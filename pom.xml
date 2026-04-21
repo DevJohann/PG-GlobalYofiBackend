@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.globalyofi</groupId>
 	<artifactId>global-yofi</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0</version>
 	<name>Global Yofi Backend</name>
 	<description>Backend para administración y venta de productos de belleza</description>
 	<url/>
