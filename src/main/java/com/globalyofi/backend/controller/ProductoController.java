@@ -83,4 +83,11 @@ public class ProductoController {
     public void eliminarProducto(@PathVariable("id") Integer id) {
         productoService.eliminar(id);
     }
+
+    // Solo ADMIN puede alternar el estado activo/inactivo
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/{id}/toggle")
+    public ProductoResponseDTO toggleProducto(@PathVariable("id") Integer id) {
+        return productoService.toggleEstado(id);
+    }
 }

@@ -277,6 +277,21 @@ public class ProductoService {
                 productoRepository.save(producto);
         }
 
+        /**
+         * Alterna el estado del producto entre ACTIVO e INACTIVO.
+         */
+        @Transactional
+        public ProductoResponseDTO toggleEstado(Integer id) {
+            Producto producto = productoRepository.findById(id)
+                    .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado con el id: " + id));
+
+            String nuevoEstado = "ACTIVO".equalsIgnoreCase(producto.getEstado()) ? "INACTIVO" : "ACTIVO";
+            producto.setEstado(nuevoEstado);
+            
+            Producto guardado = productoRepository.save(producto);
+            return convertirAResponseDTO(guardado);
+        }
+
         private ProductoResponseDTO convertirAResponseDTO(Producto producto) {
                 return ProductoResponseDTO.builder()
                                 .id(producto.getIdProducto())

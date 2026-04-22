@@ -46,10 +46,17 @@ public class ProveedorController {
         return proveedorService.actualizar(id, dto);
     }
 
-    // Solo ADMIN puede eliminar
+    // Solo ADMIN puede eliminar (desactivar lógicamente)
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public void eliminar(@PathVariable("id") Integer id) {
         proveedorService.eliminar(id);
+    }
+
+    // Solo ADMIN puede alternar el estado activo/inactivo
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/{id}/toggle")
+    public ProveedorResponseDTO toggleEstado(@PathVariable("id") Integer id) {
+        return proveedorService.toggleEstado(id);
     }
 }

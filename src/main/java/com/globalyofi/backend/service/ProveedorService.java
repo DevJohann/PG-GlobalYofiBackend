@@ -20,8 +20,7 @@ public class ProveedorService {
 
     /** Lista solo proveedores activos — para el frontend general */
     public List<ProveedorResponseDTO> obtenerTodos() {
-        return proveedorRepository.findAll().stream()
-                .filter(Proveedor::isActivo)
+        return proveedorRepository.findActiveProveedores().stream()
                 .map(this::convertirAResponse)
                 .collect(Collectors.toList());
     }
@@ -80,7 +79,24 @@ public class ProveedorService {
         Proveedor proveedor = proveedorRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Proveedor no encontrado"));
         proveedor.setActivo(false);
+        proveedor.setEstado("INACTIVO");
         proveedorRepository.save(proveedor);
+    }
+
+    /**
+     * Alterna el estado del proveedor entre ACTIVO e INACTIVO.
+     * Sincroniza tanto el booleano 'activo' como el texto 'estado'.
+     */
+    public ProveedorResponseDTO toggleEstado(Integer id) {
+        Proveedor proveedor = proveedorRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Proveedor no encontrado"));
+
+        boolean nuevoEstadoActivo = !proveedor.isActivo();
+        proveedor.setActivo(nuevoEstadoActivo);
+        proveedor.setEstado(nuevoEstadoActivo ? "ACTIVO" : "INACTIVO");
+
+        proveedorRepository.save(proveedor);
+        return convertirAResponse(proveedor);
     }
 
     private ProveedorResponseDTO convertirAResponse(Proveedor proveedor) {
