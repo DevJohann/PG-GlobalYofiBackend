@@ -14,7 +14,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/productos")
-@CrossOrigin(origins = "*")
 public class ProductoController {
 
     @Autowired
@@ -28,7 +27,7 @@ public class ProductoController {
             @RequestParam(value = "maxPrecio", required = false) BigDecimal maxPrecio,
             @RequestParam(value = "search", required = false) String search,
             @RequestParam(value = "sortBy", required = false) String sortBy) {
-        
+
         return productoService.filtrar(categoriaIds, minPrecio, maxPrecio, search, sortBy, "ACTIVO");
     }
 

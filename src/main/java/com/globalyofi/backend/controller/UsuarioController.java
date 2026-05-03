@@ -11,7 +11,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/usuarios")
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class UsuarioController {
 
@@ -54,7 +53,8 @@ public class UsuarioController {
             @PathVariable("id") Integer id,
             @RequestBody Map<String, Boolean> body) {
         Boolean activo = body.get("activo");
-        if (activo == null) throw new IllegalArgumentException("El campo 'activo' es obligatorio");
+        if (activo == null)
+            throw new IllegalArgumentException("El campo 'activo' es obligatorio");
         return usuarioService.cambiarEstadoActivo(id, activo);
     }
 }

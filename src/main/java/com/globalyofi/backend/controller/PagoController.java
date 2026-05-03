@@ -16,7 +16,6 @@ import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/api/pagos")
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class PagoController {
 
@@ -46,33 +45,52 @@ public class PagoController {
         config.setId(1L);
 
         // Datos de transferencia / QR
-        if (req.getNequiNumero() != null)  config.setNequiNumero(req.getNequiNumero());
-        if (req.getNequiNombre() != null)  config.setNequiNombre(req.getNequiNombre());
-        if (req.getQrTexto() != null)      config.setQrTexto(req.getQrTexto());
-        if (req.getQrInfoLabel1() != null) config.setQrInfoLabel1(req.getQrInfoLabel1());
-        if (req.getQrInfoValue1() != null) config.setQrInfoValue1(req.getQrInfoValue1());
-        if (req.getQrInfoLabel2() != null) config.setQrInfoLabel2(req.getQrInfoLabel2());
-        if (req.getQrInfoValue2() != null) config.setQrInfoValue2(req.getQrInfoValue2());
+        if (req.getNequiNumero() != null)
+            config.setNequiNumero(req.getNequiNumero());
+        if (req.getNequiNombre() != null)
+            config.setNequiNombre(req.getNequiNombre());
+        if (req.getQrTexto() != null)
+            config.setQrTexto(req.getQrTexto());
+        if (req.getQrInfoLabel1() != null)
+            config.setQrInfoLabel1(req.getQrInfoLabel1());
+        if (req.getQrInfoValue1() != null)
+            config.setQrInfoValue1(req.getQrInfoValue1());
+        if (req.getQrInfoLabel2() != null)
+            config.setQrInfoLabel2(req.getQrInfoLabel2());
+        if (req.getQrInfoValue2() != null)
+            config.setQrInfoValue2(req.getQrInfoValue2());
 
         // Condiciones de compra y precios
-        if (req.getCondicionesCompra() != null) config.setCondicionesCompra(req.getCondicionesCompra());
-        if (req.getPrecioEnvioGratis() != null) config.setPrecioEnvioGratis(req.getPrecioEnvioGratis());
-        if (req.getPrecioEnvio() != null)       config.setPrecioEnvio(req.getPrecioEnvio());
+        if (req.getCondicionesCompra() != null)
+            config.setCondicionesCompra(req.getCondicionesCompra());
+        if (req.getPrecioEnvioGratis() != null)
+            config.setPrecioEnvioGratis(req.getPrecioEnvioGratis());
+        if (req.getPrecioEnvio() != null)
+            config.setPrecioEnvio(req.getPrecioEnvio());
 
         // Contacto
-        if (req.getWhatsappNumero() != null)      config.setWhatsappNumero(req.getWhatsappNumero());
-        if (req.getContactoTelefono() != null)    config.setContactoTelefono(req.getContactoTelefono());
-        if (req.getContactoEmail() != null)       config.setContactoEmail(req.getContactoEmail());
+        if (req.getWhatsappNumero() != null)
+            config.setWhatsappNumero(req.getWhatsappNumero());
+        if (req.getContactoTelefono() != null)
+            config.setContactoTelefono(req.getContactoTelefono());
+        if (req.getContactoEmail() != null)
+            config.setContactoEmail(req.getContactoEmail());
 
         // Tienda
-        if (req.getTiendaDireccion() != null)         config.setTiendaDireccion(req.getTiendaDireccion());
-        if (req.getTiendaHorario() != null)           config.setTiendaHorario(req.getTiendaHorario());
-        if (req.getTiendaTiempoPreparacion() != null) config.setTiendaTiempoPreparacion(req.getTiendaTiempoPreparacion());
+        if (req.getTiendaDireccion() != null)
+            config.setTiendaDireccion(req.getTiendaDireccion());
+        if (req.getTiendaHorario() != null)
+            config.setTiendaHorario(req.getTiendaHorario());
+        if (req.getTiendaTiempoPreparacion() != null)
+            config.setTiendaTiempoPreparacion(req.getTiendaTiempoPreparacion());
 
         // Habilitación de medios de pago
-        if (req.getHabilitarTransferencia() != null)   config.setHabilitarTransferencia(req.getHabilitarTransferencia());
-        if (req.getHabilitarReciboPago() != null)      config.setHabilitarReciboPago(req.getHabilitarReciboPago());
-        if (req.getHabilitarRecogerTienda() != null)   config.setHabilitarRecogerTienda(req.getHabilitarRecogerTienda());
+        if (req.getHabilitarTransferencia() != null)
+            config.setHabilitarTransferencia(req.getHabilitarTransferencia());
+        if (req.getHabilitarReciboPago() != null)
+            config.setHabilitarReciboPago(req.getHabilitarReciboPago());
+        if (req.getHabilitarRecogerTienda() != null)
+            config.setHabilitarRecogerTienda(req.getHabilitarRecogerTienda());
 
         return toDTO(pagoConfigRepository.save(config));
     }
@@ -156,14 +174,17 @@ public class PagoController {
                 .qrInfoLabel2(c.getQrInfoLabel2())
                 .qrInfoValue2(c.getQrInfoValue2())
                 .condicionesCompra(c.getCondicionesCompra())
-                .precioEnvioGratis(c.getPrecioEnvioGratis() != null ? c.getPrecioEnvioGratis() : new BigDecimal("150000"))
+                .precioEnvioGratis(
+                        c.getPrecioEnvioGratis() != null ? c.getPrecioEnvioGratis() : new BigDecimal("150000"))
                 .precioEnvio(c.getPrecioEnvio() != null ? c.getPrecioEnvio() : new BigDecimal("15000"))
                 .whatsappNumero(c.getWhatsappNumero())
                 .contactoTelefono(c.getContactoTelefono())
                 .contactoEmail(c.getContactoEmail())
-                .tiendaDireccion(c.getTiendaDireccion() != null ? c.getTiendaDireccion() : "Calle 6 # 2-26, Gama, Cundinamarca")
+                .tiendaDireccion(
+                        c.getTiendaDireccion() != null ? c.getTiendaDireccion() : "Calle 6 # 2-26, Gama, Cundinamarca")
                 .tiendaHorario(c.getTiendaHorario() != null ? c.getTiendaHorario() : "Lunes a Sábado: 8am – 6pm")
-                .tiendaTiempoPreparacion(c.getTiendaTiempoPreparacion() != null ? c.getTiendaTiempoPreparacion() : "1-2 días hábiles")
+                .tiendaTiempoPreparacion(
+                        c.getTiendaTiempoPreparacion() != null ? c.getTiendaTiempoPreparacion() : "1-2 días hábiles")
                 .habilitarTransferencia(c.getHabilitarTransferencia() != null ? c.getHabilitarTransferencia() : true)
                 .habilitarReciboPago(c.getHabilitarReciboPago() != null ? c.getHabilitarReciboPago() : true)
                 .habilitarRecogerTienda(c.getHabilitarRecogerTienda() != null ? c.getHabilitarRecogerTienda() : true)

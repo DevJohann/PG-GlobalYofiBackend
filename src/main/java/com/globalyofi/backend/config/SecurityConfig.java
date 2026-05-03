@@ -9,7 +9,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,18 +31,9 @@ public class SecurityConfig {
         this.jwtAuthFilter = jwtAuthFilter;
     }
 
-    /**
-     * Configuramos qué rutas deben ser IGNORADAS completamente por Spring Security.
-     * Esto es más agresivo que permitAll() y ayuda a resolver problemas de 403 en recursos públicos.
-     */
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> web.ignoring()
-                .requestMatchers("/api/auth/**")
-                .requestMatchers("/api/chatbot/**")
-                .requestMatchers("/uploads/**")
-                .requestMatchers("/error");
-    }
+    // Removed WebSecurityCustomizer to ensure all requests pass through the
+    // security filter chain
+    // and receive CORS headers correctly.
 
     /**
      * Main security configuration
@@ -58,11 +48,13 @@ public class SecurityConfig {
                         // Permitir todas las peticiones OPTIONS pre-flight
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Rutas públicas: GET restringido a solo ver la lista base
-                        .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/categorias", "/api/proveedores/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/categorias", "/api/proveedores/**")
+                        .permitAll()
                         .requestMatchers("/api/auth/**", "/uploads/**", "/api/chatbot/**", "/error").permitAll()
-                        
+
                         // REGLAS PARA PEDIDOS
-                        // 1. Cualquier usuario autenticado puede realizar pedidos y ver sus propios pedidos
+                        // 1. Cualquier usuario autenticado puede realizar pedidos y ver sus propios
+                        // pedidos
                         .requestMatchers(HttpMethod.POST, "/api/pedidos/realizar").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/pedidos/mis-pedidos").authenticated()
                         // 2. Solo ADMIN puede ver lista completa y detalles técnicos
@@ -74,7 +66,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/pagos/config/qr").hasRole("ADMIN")
 
                         .requestMatchers(HttpMethod.POST, "/api/pagos/*/iniciar").authenticated()
-                         .requestMatchers(HttpMethod.POST, "/api/pagos/*/comprobante").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/pagos/*/comprobante").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/pagos/*").authenticated()
                         .requestMatchers(HttpMethod.PATCH, "/api/pagos/*/validar").hasRole("ADMIN")
 
@@ -93,9 +85,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:4200", "http://127.0.0.1:4200"));
+        config.setAllowedOrigins(List.of(
+                "http://localhost:4200",
+                "http://127.0.0.1:4200",
+                "https://pg-globalyofifrontend-production.up.railway.app"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"));
         config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(true);
 

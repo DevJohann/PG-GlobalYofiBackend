@@ -14,7 +14,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/pedidos")
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class PedidoController {
 
@@ -47,7 +46,8 @@ public class PedidoController {
 
     @PutMapping("/{id}/estado")
     @PreAuthorize("hasRole('ADMIN') or (isAuthenticated() and #request.estado == 'Cancelado' and @pedidoService.esDuenioDelPedido(#id, authentication.name))")
-    public PedidoResponseDTO actualizarEstado(@PathVariable("id") Integer id, @RequestBody EstadoPedidoRequestDTO request) {
+    public PedidoResponseDTO actualizarEstado(@PathVariable("id") Integer id,
+            @RequestBody EstadoPedidoRequestDTO request) {
         return pedidoService.actualizarEstado(id, request.getEstado());
     }
 }
